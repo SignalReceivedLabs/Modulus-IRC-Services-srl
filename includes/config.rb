@@ -59,6 +59,7 @@ module Modulus
               $stderr.puts "Fatal error while reading configuration file #{fileName}:"
               $stderr.puts "#{e}"
               $stderr.puts "#{e.backtrace}"
+              configFile.close
               exit -1
           end
 
@@ -67,8 +68,20 @@ module Modulus
 
       configFile.close
 
+      if @configuration.has_key? "NoLoad"
+        if @configuration["NoLoad"]["do_not_start"] == "yes"
+          $stderr.puts "Fatal error: The do_not_start option is enabled. Read the *entire* configuration file before starting services!"
+          exit -1
+        end
+      end
+
       #puts @configuration.to_s
       return true
+    end
+
+    def getBool(section, key)
+      opt = self.getOption(section,key)
+      return (opt == "yes" or opt == "on" or opt == "true")
     end
 
     def getOption(section, key)
