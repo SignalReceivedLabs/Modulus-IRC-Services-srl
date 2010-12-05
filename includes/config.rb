@@ -32,7 +32,7 @@ module Modulus
       configFile = File.new(fileName, "r")
       
       while(line = configFile.gets)
-        line = line.chomp
+        line = line.strip
 
         next if line[0] == "#" or line.length == 0
         
@@ -50,9 +50,9 @@ module Modulus
             next if lineArr[0] == nil
 
             if lineArr[1] == nil
-              @configuration[section][lineArr[0].chomp] = nil
+              @configuration[section][lineArr[0].strip] = nil
             else
-              @configuration[section][lineArr[0].chomp] = lineArr[1].chomp
+              @configuration[section][lineArr[0].strip] = lineArr[1].strip
             end
 
           rescue => e
@@ -67,8 +67,15 @@ module Modulus
 
       configFile.close
 
-      puts @configuration.to_s
+      #puts @configuration.to_s
+      return true
+    end
 
+    def getOption(section, key)
+      if @configuration.has_key? section
+        return @configuration[section][key]
+      end
+      return nil
     end
 
   end # class Config
