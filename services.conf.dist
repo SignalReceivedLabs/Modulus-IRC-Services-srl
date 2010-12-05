@@ -58,6 +58,10 @@ log_channel_verbosity = info
 
 [Network]
 
+# The name of the network. This should be the same as that configurwith your
+# IRCD.
+network_name = Unconfigured IRC Network
+
 # The name of the services server as seen by other network servers and clients.
 # Where this appears may depend on your IRCD.
 services_name = Unconfigured IRC Services
