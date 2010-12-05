@@ -24,6 +24,8 @@ module Modulus
 
     def initialize(config)
       @config = config
+      @sendq = Queue.new
+
     end
 
     def connect
@@ -33,32 +35,66 @@ module Modulus
       bindAddr = @config.getOption('Network', 'bind_address')
       bindPort = @config.getOption('Network', 'bind_port')
 
-      socket = TCPSocket.new(host, port, bindAddr, bindPort)
-      thread = self.startReaderThread(socket)
+      @socket = TCPSocket.new(host, port, bindAddr, bindPort)
 
-      socket.puts "PASS :#{@config.getOption('Network', 'link_password')}"
+      @socket.puts "PASS :#{@config.getOption('Network', 'link_password')}"
 
-      socket.puts "PROTOCTL :TOKEN NICKIP CLK SJ3 VHP"
-      socket.puts "SERVER #{@config.getOption('Network', 'services_hostname')} 1 :U2309-0 #{@config.getOption('Network', 'services_name')}"
-      socket.puts "ES"
-      socket.puts "AO 0 #{Time.now.to_i} 2309 * 0 0 0 :#{@config.getOption('Network', 'network_name')}"
+      @socket.puts "SERVER #{@config.getOption('Network', 'services_hostname')} 1 :#{@config.getOption('Network', 'services_name')}"
+      #@socket.puts "SERVER #{@config.getOption('Network', 'services_hostname')} 1 :U2309-0 #{@config.getOption('Network', 'services_name')}"
+      
+      unless @socket.gets.chomp.include? "ESVID"
+        p lastMsg
+        $stderr.puts "Connection failed: Server does not support ESVID."
+        exit -1
+      end
 
-      return thread
+      unless @socket.gets.chomp == "PASS :#{@config.getOption('Network', 'link_password')}"
+        p lastMsg
+        $stderr.puts "Connection failed: Server replied with incorrect password."
+        exit -1
+      end
+
+      @socket.puts "PROTOCTL ESVID NICKv2 TOKEN NICKIP SJ3 VHP UMODE2 CHANMODES CLK"
+      @socket.puts "ES"
+      @socket.puts "AO 0 #{Time.now.to_i} 0 * 0 0 0 :#{@config.getOption('Network', 'network_name')}"
+
+      self.startSendThread
+      return self.startRecvThread
     end
 
-    def startReaderThread(socket)
+    def startRecvThread
       @readThread = Thread.new {
 
         $log.debug "protocol-unreal32", "Socket reader thread started."
 
-        while line = socket.gets
+        while line = @socket.gets
             puts line
         end
       }
     end
 
+    def startSendThread
+      @sendThread = Thread.new {
+
+        $log.debug "protocol-unreal32", "Socket send thread started."
+
+        while str = @sendq.pop
+          @socket.puts str
+        end
+
+      }
+
+    end
+
     def closeConnection
-      
+      if @socket != nil
+        name = @config.getOption('Network', 'services_hostname')
+        @socket.puts "SQUIT :#{name} SQUIT #{name} :Services is shutting down."
+      end
+    end
+
+    def createClient(nick, user, host)
+      @sendq << "NICK #{nick} 0 0 #{user} #{host} #{@config.getOption('Network', 'services_hostname')} 0 +oS #{host} :#{@config.getOption('Network', 'services_name')}"
     end
 
   end #class ProtocolAbstraction

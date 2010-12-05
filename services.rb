@@ -88,4 +88,6 @@ load("protocols/#{protocol}.rb")
 
 link = Modulus::ProtocolAbstraction.new($config)
 
+link.createClient("ChanServ", $config.getOption('Network', 'services_user'), $config.getOption('Network', 'services_hostname'))
+
 link.connect.join
