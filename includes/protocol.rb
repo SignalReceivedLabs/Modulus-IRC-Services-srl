@@ -26,7 +26,8 @@ module Modulus
         $log.debug "protocol", "Socket reader thread started."
 
         while line = @socket.gets
-            puts "<-- #{line}"
+          #TODO: Parse this, hand it off to something else.
+          puts "<-- #{line}"
         end
 
         $log.debug "protocol", "Socket reader thread ending."

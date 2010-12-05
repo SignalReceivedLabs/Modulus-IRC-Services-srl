@@ -25,7 +25,7 @@ module Modulus
     def initialize(config)
       @config = config
       @sendq = Queue.new
-
+      @clients = Array.new
     end
 
     def connect
@@ -54,6 +54,10 @@ module Modulus
         exit -1
       end
 
+      @clients.each { |client|
+        @socket.puts "NICK #{client.nick} 0 0 #{client.user} #{client.host} #{@config.getOption('Network', 'services_hostname')} 0 +oS #{host} :#{@config.getOption('Network', 'services_name')}"
+      }
+
       @socket.puts "PROTOCTL ESVID NICKv2 TOKEN NICKIP SJ3 VHP UMODE2 CHANMODES CLK NOQUIT"
       @socket.puts "ES"
       @socket.puts "AO 0 #{Time.now.utc.to_i} 0 * 0 0 0 :#{@config.getOption('Network', 'network_name')}"
@@ -67,6 +71,10 @@ module Modulus
         name = @config.getOption('Network', 'services_hostname')
         @socket.puts ":#{name} SQUIT #{name} :Services is shutting down."
       end
+    end
+
+    def createPreSyncClient(nick, user, host)
+      @clients << Pseudoclient.new(nick, user, host)
     end
 
     def sendPrivmsg(source, target, str)

@@ -88,6 +88,19 @@ load("protocols/#{protocol}.rb")
 
 link = Modulus::ProtocolAbstraction.new($config)
 
-link.createClient("ChanServ", $config.getOption('Network', 'services_user'), $config.getOption('Network', 'services_hostname'))
+trap("INT"){ link.closeConnection() }
+trap("TERM"){ link.closeConnection() }
+trap("KILL"){ exit } # Kill (signal 9) is pretty hardcore. Just exit!
 
+trap("HUP", "IGNORE") # We don't need to die on HUP.
+
+Dir["./modules/*"].each { |servName|
+  servName = File.basename servName
+  $log.debug "preload", "Create pre-sync client #{servName}."
+  link.createPreSyncClient(servName, $config.getOption('Network', 'services_user'), $config.getOption('Network', 'services_hostname'))
+}
+
+#link.createClient(servName, $config.getOption('Network', 'services_user'), $config.getOption('Network', 'services_hostname'))
+
+$log.debug "preload", "Connecting."
 link.connect.join
