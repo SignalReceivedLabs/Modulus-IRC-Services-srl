@@ -56,7 +56,7 @@ module Modulus
 
       @socket.puts "PROTOCTL ESVID NICKv2 TOKEN NICKIP SJ3 VHP UMODE2 CHANMODES CLK"
       @socket.puts "ES"
-      @socket.puts "AO 0 #{Time.now.to_i} 0 * 0 0 0 :#{@config.getOption('Network', 'network_name')}"
+      @socket.puts "AO 0 #{Time.now.utc.to_i} 0 * 0 0 0 :#{@config.getOption('Network', 'network_name')}"
 
       self.startSendThread
       return self.startRecvThread
@@ -89,12 +89,13 @@ module Modulus
     def closeConnection
       if @socket != nil
         name = @config.getOption('Network', 'services_hostname')
-        @socket.puts "SQUIT :#{name} SQUIT #{name} :Services is shutting down."
+        @socket.puts ":#{name} SQUIT #{name} :Services is shutting down."
       end
     end
 
     def createClient(nick, user, host)
       @sendq << "NICK #{nick} 0 0 #{user} #{host} #{@config.getOption('Network', 'services_hostname')} 0 +oS #{host} :#{@config.getOption('Network', 'services_name')}"
+      @sendq << ":#{nick} C #testing"
     end
 
   end #class ProtocolAbstraction
