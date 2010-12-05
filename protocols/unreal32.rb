@@ -68,8 +68,10 @@ module Modulus
         $log.debug "protocol-unreal32", "Socket reader thread started."
 
         while line = @socket.gets
-            puts line
+            puts "<-- #{line}"
         end
+
+        $log.debug "protocol-unreal32", "Socket reader thread ending."
       }
     end
 
@@ -79,8 +81,12 @@ module Modulus
         $log.debug "protocol-unreal32", "Socket send thread started."
 
         while str = @sendq.pop
+          puts "--> #{str}"
           @socket.puts str
+          sleep 0.001 # Let other threads work. This is horrible, I know. It's temporary!
         end
+
+        $log.debug "protocol-unreal32", "Socket send thread stopping."
 
       }
 
@@ -93,15 +99,56 @@ module Modulus
       end
     end
 
+    def sendPrivmsg(source, target, str)
+      @sendq << ":#{source} ! #{target} :#{str}"
+    end
+
+    def sendNotice(source, target, str)
+      @sendq << ":#{source} B #{target} :#{str}"
+    end
+
     def createClient(nick, user, host)
       @sendq << "NICK #{nick} 0 0 #{user} #{host} #{@config.getOption('Network', 'services_hostname')} 0 +oS #{host} :#{@config.getOption('Network', 'services_name')}"
     end
 
     def joinChannel(nick, channel)
       @sendq << ":#{nick} C #{channel}"
+      # Yeah, we're assigning ourselves +a on join in every case right now.
+      # Should this be done separately?
       @sendq << ":#{nick} G #{channel} +a #{nick}"
     end
 
+    def partChannel(nick, channel)
+      @sendq << ":#{nick} D #{channel}"      
+    end
+
+    def channelKick(nick, channel, target, reason="")
+      @sendq << ":#{nick} H #{channel} #{target} :#{reason}"
+    end
+
+    def channelMode(source, target, modeChanges, modeParams)
+      @sendq << ":#{source} G #{target} #{modeChanges} #{modeParams}"
+    end
+
+    def channelInvite(source, target, channel)
+      @sendq << ":#{source} * #{target} #{channel}"
+    end
+
+    def channelTopic(source, target, topic)
+      @sendq << ":#{source} ) #{target} #{source} #{Time.now.utc.to_i} :#{topic}"
+    end
+
+    def forceChannelJoin(source, target, channel)
+      @sendq << ":#{source} AX #{target} #{channel}"
+    end
+
+    def forceChannelPart(source, target, channel, reason=nil)
+      @sendq << ":#{source} AY #{target} #{channel} #{":#{reason}" unless reason == nil}"
+    end
+
+    def forceChannelMode(source, target, modeChanges, modeParams)
+      @sendq << ":#{source} o #{target} #{modeChanges} #{modeParams}"
+    end
   end #class ProtocolAbstraction
 
 end #module Modulus
