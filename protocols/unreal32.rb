@@ -95,7 +95,11 @@ module Modulus
 
     def createClient(nick, user, host)
       @sendq << "NICK #{nick} 0 0 #{user} #{host} #{@config.getOption('Network', 'services_hostname')} 0 +oS #{host} :#{@config.getOption('Network', 'services_name')}"
-      @sendq << ":#{nick} C #testing"
+    end
+
+    def joinChannel(nick, channel)
+      @sendq << ":#{nick} C #{channel}"
+      @sendq << ":#{nick} G #{channel} +a #{nick}"
     end
 
   end #class ProtocolAbstraction
