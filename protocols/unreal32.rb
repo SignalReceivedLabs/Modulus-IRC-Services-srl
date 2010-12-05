@@ -16,4 +16,51 @@
 #
 #
 
+module Modulus
 
+  class ProtocolAbstraction
+
+    require 'socket'
+
+    def initialize(config)
+      @config = config
+    end
+
+    def connect
+      $log.debug "protocol-unreal32", "Starting connection to IRC server."
+      host = @config.getOption('Network', 'link_address')
+      port = @config.getOption('Network', 'link_port')
+      bindAddr = @config.getOption('Network', 'bind_address')
+      bindPort = @config.getOption('Network', 'bind_port')
+
+      socket = TCPSocket.new(host, port, bindAddr, bindPort)
+      thread = self.startReaderThread(socket)
+
+      socket.puts "PASS :#{@config.getOption('Network', 'link_password')}"
+
+      socket.puts "PROTOCTL :TOKEN NICKIP CLK SJ3 VHP"
+      socket.puts "SERVER #{@config.getOption('Network', 'services_hostname')} 1 :U2309-0 #{@config.getOption('Network', 'services_name')}"
+      socket.puts "ES"
+      socket.puts "AO 0 #{Time.now.to_i} 2309 * 0 0 0 :#{@config.getOption('Network', 'network_name')}"
+
+      return thread
+    end
+
+    def startReaderThread(socket)
+      @readThread = Thread.new {
+
+        $log.debug "protocol-unreal32", "Socket reader thread started."
+
+        while line = socket.gets
+            puts line
+        end
+      }
+    end
+
+    def closeConnection
+      
+    end
+
+  end #class ProtocolAbstraction
+
+end #module Modulus

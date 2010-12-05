@@ -84,3 +84,8 @@ else
   exit -1
 end
 
+load("protocols/#{protocol}.rb")
+
+link = Modulus::ProtocolAbstraction.new($config)
+
+link.connect.join
