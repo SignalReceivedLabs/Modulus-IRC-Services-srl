@@ -56,6 +56,11 @@ log_channel =
 # Default: info
 log_channel_verbosity = info
 
+# Type of replies sent to users when chatting in private messages. May be
+# either privmsg or notice.
+# Default: notice
+reply_type = notice
+
 [Network]
 
 # The name of the network. This should be the same as that configurwith your
