@@ -18,7 +18,7 @@
 
 module Modulus
 
-  class ProtocolAbstraction
+  class ProtocolAbstraction < ProtocolAbstractionMixin
 
     require 'socket'
 
@@ -54,42 +54,12 @@ module Modulus
         exit -1
       end
 
-      @socket.puts "PROTOCTL ESVID NICKv2 TOKEN NICKIP SJ3 VHP UMODE2 CHANMODES CLK"
+      @socket.puts "PROTOCTL ESVID NICKv2 TOKEN NICKIP SJ3 VHP UMODE2 CHANMODES CLK NOQUIT"
       @socket.puts "ES"
       @socket.puts "AO 0 #{Time.now.utc.to_i} 0 * 0 0 0 :#{@config.getOption('Network', 'network_name')}"
 
       self.startSendThread
       return self.startRecvThread
-    end
-
-    def startRecvThread
-      @readThread = Thread.new {
-
-        $log.debug "protocol-unreal32", "Socket reader thread started."
-
-        while line = @socket.gets
-            puts "<-- #{line}"
-        end
-
-        $log.debug "protocol-unreal32", "Socket reader thread ending."
-      }
-    end
-
-    def startSendThread
-      @sendThread = Thread.new {
-
-        $log.debug "protocol-unreal32", "Socket send thread started."
-
-        while str = @sendq.pop
-          puts "--> #{str}"
-          @socket.puts str
-          sleep 0.001 # Let other threads work. This is horrible, I know. It's temporary!
-        end
-
-        $log.debug "protocol-unreal32", "Socket send thread stopping."
-
-      }
-
     end
 
     def closeConnection
