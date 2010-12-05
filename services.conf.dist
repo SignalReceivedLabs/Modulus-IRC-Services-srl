@@ -69,21 +69,30 @@ services_user = services
 # The hostname used by services (as in nick!user@hostname) pseudoclients.
 services_hostname = services.example.com
 
-
+# Bind to this address when connecting to the IRC server. This is useful if
+# services will be running on a shell host or you have multiple IP addresses.
 bind_address = 
 
+# Bind to this port when connecting to the IRC server. In most cases, this is
+# not needed.
 bind_port = 
 
+# The address of the IRC server to which services will connect.
 link_address = 
 
+# The port on the IRC server to which services iwll connect.
 link_port = 
 
+# The password to use when authenticating the IRC server.
 link_password =
 
 # IRCD. Currently supported: unreal32 (3.2.8.10)
 link_protocol = unreal32
 
-link_ssl = 
+# If enabled, use SSL to connect to the IRC server.
+# Not yet implemented.
+# Default: no
+link_ssl = no
 
 [Account]
 # Account management settings. This is the only part of the system which is not
