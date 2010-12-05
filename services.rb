@@ -18,4 +18,56 @@
 #
 #
 
+NAME="Modulus IRC Services"
+VERSION="0.1-pre-alpha"
+
 require 'optparse'
+
+# We're going to need this a lot. MIght as well do it now.
+BASEDIR = File.dirname(__FILE__)
+
+$options = {}
+OptionParser.new do |opts|
+  opts.banner = "Usage: #{$0} [options]"
+
+  opts.separator ""
+  opts.separator "Specific $options:"
+
+  $options[:fork] = true
+  opts.on("-f", "--foreground", "Do not fork into the background.") do |v|
+    $options[:fork] = false
+  end
+  $options[:configFile] = 'services.conf'
+  opts.on("-c", "--config-file FILE", "Use specified file instead of services.conf.") do |fi|
+    $options[:configFile] = fi
+  end
+
+end.parse!
+
+# Load all files in the given directory under the working directory.
+# @param [String] dir The base directory from which files will be recursively required.
+# @example
+# enumerateIncludes("includes")
+def enumerateIncludes(dir)
+  begin
+    Dir["#{BASEDIR}/#{dir}/**/*.rb"].each { |f| require(f) }
+  rescue => e
+    $stderr.puts "Failed loading files in #{dir}: #{e}"
+    exit -1
+  end
+end
+
+# Let's get this out of the way first.
+enumerateIncludes("includes")
+
+# Now that we have the application loaded, let's go ahead and bring out configuration into memory.
+# We'll be needing it before we can do any real work, anyway.
+config = Modulus::Config.new("#{BASEDIR}/#{$options[:configFile]}")
+
+# Okay, we got that taken care of. We're going to want to log as much as we
+# can. Now that we know where to store logs, go ahead and start the logger.
+# We'll make this a global variable so we can log from anywhere.
+
+$log = Modulus::Log.new("#{BASEDIR}/#{config.getOption('Core', 'log_location')}", config.getOption('Core', 'log_rotation_period'))
+
+$log.info "preload", "#{NAME} version #{VERSION} is starting."
