@@ -1,0 +1,5 @@
+services.conf
+*.swp
+*.tmp
+*.*~
+logs/*

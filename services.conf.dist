@@ -1,0 +1,368 @@
+# Modulus IRC Services
+# Configuration File
+# Revision 0
+
+[Core]
+
+# The number of worker threads to handle incoming messages. 5 should suffice
+# for almost all networks. Ruby does not currently support true concurrency,
+# so increasing this will have little impact.
+# Default: 5
+thread_pool_size = 5
+
+# Modules (by file name) which will not be loaded, even if explicitly requested
+# by an oper.
+# No default.
+module_blacklist = 
+
+# The file to which the current services PID will be written. Make sure it is
+# in a writable location. Path is relative!
+# Default: services.pid
+pid_file = services.pid
+
+# The amount of detail about services activity that will be logged.
+# May be any of:
+# none - Logging is disabled.
+# info - Only informational messages are logged.
+# warning - Warnings and informational messages are logged.
+# error - Errors, as well as warnings and info are logged.
+# debug - All possible information is written.
+# Default: info
+log_verbosity = info
+
+# The name of the directory relative to services into which services logs
+# will be written. If this directory does not exist, it will be created.
+# Default: logs
+log_location = logs
+
+# The frequency with which current logs will be renamed and new logs started.
+# May be any of:
+# daily - Each night at midnight
+# weekly - Each Sunday at midnight
+# monthly - The 1st of each month at midnight
+# never - Keep writing to one log file (it could get huge!)
+# Default: weekly
+log_rotation_period = weekly
+
+# A channel on IRC which will receive log messages. It is strongly recommended
+# that this channel be restricted to opers only at all times, as information
+# about network users (such as IP or e-mail address) may be posted there often.
+# All services pseudoclients will also be joined to this channel.
+# No default.
+log_channel = 
+
+# Usage is the same as log_verbosity, but applies to the posting of messages to
+# log_channel, if log_channel is set.
+# Default: info
+log_channel_verbosity = info
+
+[Network]
+
+# The name of the services server as seen by other network servers and clients.
+# Where this appears may depend on your IRCD.
+services_name = Unconfigured IRC Services
+
+# The user (as in nick!user@hostname) that will be used by services psuedoclients.
+# Default: services
+services_user = services
+
+# The hostname used by services (as in nick!user@hostname) pseudoclients.
+services_hostname = services.example.com
+
+
+bind_address = 
+
+bind_port = 
+
+link_address = 
+
+link_port = 
+
+link_password =
+
+# IRCD. Currently supported: unreal32 (3.2.8.10)
+link_protocol = unreal32
+
+link_ssl = 
+
+[Account]
+# Account management settings. This is the only part of the system which is not
+# completely modular as almost every single module will rely on it being here.
+
+# The names used by services psuedoclients will be claimed automatically and
+# do not need to be listed here. Wildcards are supported (not regex!).
+# Not case-sensitive. Separate by space.
+# Default: *serv
+reserved_account_names = *serv
+
+# For the next four options, set to 0 or leave blank to disable that limit
+
+# Default: 3
+minimum_account_name_length = 3
+
+# If your users will be authenticating with NickServ (most likely case), this
+# should be set according to your network's IRCD-imposed nick length limit.
+# Default: 30
+maximum_account_name_length = 30
+
+# Default: 3
+minimum_password_length = 5
+
+# Default: 3
+maximum_password_length = 60
+
+# May be set to yes or no.
+# If yes, users will be e-mailed a confirmation code and instructions as
+# specified by whatever authentication module is in use.
+# Default: no
+# Recommended: yes
+use_email_confirmation = no
+
+# Number of days after which an account is expired if the user does not log in.
+# What happens to expired accounts is configured by the expiration_action
+# setting in this section.
+# Default: 30
+inactvity_expiration_time = 30
+
+# The action that will be taken when an account is inactive (not logged in)
+# for the number of days specified by inactivity_expiration_time above.
+# May be any of:
+# delete_all - Delete the account and all owned items.
+# suspend_account - Suspend the account. Opers may delete or unsuspend later.
+#                   Owned items will be left intact.
+# delete_account - Delete only the account. Ownership of owned items will be
+#                  transferred to services.
+# suspend_and_transfer - Suspend the account. Ownership is transferred to
+#                        services.
+# suspend_and_delete - Suspend the account. Owned items are deleted.
+# Default: delete_all
+expiration_action = delete_all
+
+# Permit the use of the NOEXPIRE flag on accounts, preventing them from
+# expiring.
+# Default: no
+allow_no_expire = no
+
+[Database]
+
+# The type of database used to store account and module data.
+# Currently supported: mysql
+# Default: mysql
+database_type = mysql
+
+# The following 4 options are only used if you selected mysql.
+
+# Address of the database server. Probably localhost.
+database_addresss = 
+
+# User name used to connect to the database server.
+database_user_name = 
+
+# Password used to authenticate with the database server.
+database_password = 
+
+# Database in which services data is stored.
+database_name = 
+
+# Prefix applied to table names. Use this only if services shares the database
+# with another application. Make sure the prefix is unique! And don't change
+# this once you've started using services or you will suddenly be working on
+# an empty set of data.
+# Default is to leave this blank.
+database_table_prefix = 
+
+[Email]
+# If you want to use e-mail confirmations for new account registration, or you
+# want to enable e-mailing of password reminders or other module information,
+# you *must* configure this section to work with your system.
+
+# How mail will be sent.
+# May be any of:
+# disabled
+# sendmail
+# SMTP
+# Default: disabled
+email_type = disabled
+
+# The following four options will only be used if email_type is set to SMTP.
+
+# Address of the SMTP server.
+smtp_address = 
+
+# User name used to authenticate with SMTP. Frequently your e-mail address.
+# Consult your provider if you're unsure.
+smtp_user_name = 
+
+# Password used to authenicate with SMTP.
+smtp_password =
+
+# Prefix which will be included at the beginning of the subject of all e-mails
+# sent by services.
+smtp_subject_prefix = 
+
+########################
+#                      #
+# Module Configuration #
+#                      #
+########################
+
+[ChanServ]
+
+# Channel names reserved for use by services. Users will not be allowed to join
+# or register these channels. If the channel is populated when services come
+# online, they will be emptied. Wildcards are supported. Not case sensitive.
+# Separate by space.
+reserved_channels = 
+
+# If enabled, ChanServ will join all registered channels.
+# Default: on
+join_registered = on
+
+# The number of days of emptiness after which a channel will expire. All
+# information about the channel will be deleted from ChanServ's database.
+# Default: 30
+expiration_time = 30
+
+# Default type of kick / ban that will be used when enforcing the AKICK list.
+# May be any of:
+# kick_ban - User is kicked and a channel ban is placed.
+# kick - User is kicked from the channel. No ban is placed.
+# ban - A ban is placed against the user. No kick is issued.
+# kick_temp_ban - User is kicked and a channel ban is placed. If the ban is
+#                 still in place in 30 minutes, it is removed.
+# Default: kick_ban
+akick_type = kick_ban
+
+# Permit the use of the NOEXPIRE flag on channels. Setting this flag prevents
+# channels from expiring.
+# Default: no
+allow_no_expire = no
+
+# Maxmimum number of channels a single account may register. Note that this is
+# not a limit on the number of channels an IRC user may join (that is enforced
+# by a setting on the IRCD).
+# Default: 15
+max_channels_per_account = 15
+
+[MemoServ]
+
+# Maximum number of messages which may be stored in any of a single user's
+# mailboxes, including inbox, sent, and draft. This is per-box, not overall.
+# Default: 25
+max_mailbox_size = 25
+
+# The minimum number of seconds a user must wait between sending memos.
+# Default: 60
+send_delay = 60
+
+
+[BotServ]
+
+# Maximum number of bots which may be assigned to a single channel.
+# Default: 1
+max_per_channel = 1
+
+# Enable the use of in-channel commands, such as !say or !op.
+# Default: on
+in_channel_commands = on
+
+[QuoteServ]
+
+# Only allow opers to add quotations.
+# Default: off
+oper_only = off
+
+# Maximum length of a submitted quotation.
+# Default: 400
+max_length = 400
+
+[HostServ]
+
+# Hostnames in this list will not be permitted except when added by opers.
+# Users will automatically be notified of the failure when the hostname is
+# requested. Wildcards are supported. Not case sensitive. Separate by space.
+# Default: *com *net *org *edu *gov *co.cc
+restricted_hostnames = *com *net *org *edu *gov *co.cc
+
+# If set, HostServ will join this channel and allow users to instantly gain
+# a vhost.
+# No default.
+interactive_channel =
+
+# If set, all requests (including those made in interactive_channel) will
+# require an oper to approve the vhost.
+# Default: yes
+oper_approval = yes
+
+[BanServ]
+
+# If set, one or more DNSBL services will be checked on all connecting clients.
+# Separate by spaces.
+# May be any of:
+# disabled
+# dronebl - http://www.dronebl.org/
+# Default: disabled
+use_dnsbl = disabled
+
+# If a client is banned from the network due to a DNSBL match, this reason will
+# be used. %w is replaced by a link to the matched DNSBL's website explaining
+# the ban. If the DNSBL's web site supports links directly to the banned IP's
+# entry, the IP is included automatically. %i is replaced by the banned user's
+# IP address.
+# Default: Your host was found in a blacklist. Please see %w for more info.
+dnsbl_ban_reason = Your host was found in a blacklist. Please see %w for more info.
+
+# Duration in minutes to ban IPs which are found in a DNSBL.
+# Default: 1440
+dnsbl_ban_duration = 1440
+
+# Enable network botnet monitoring. If enabled, registered channels will be
+# monitored for botnet-like behavior, such as multiple clients repeating the
+# same long message. Matching connections will be banned for
+# botnet_ban_duration.
+# Default: no
+botnet_monitoring = no
+
+# Duration in minutes to ban IPs which are suspected to be botnets. Only used
+# if botnet_monitoring is set to on.
+botnet_ban_duration = 300
+
+# Ban reason to use when a client is banned for botnet-like behavior. Only used
+# if botnet_monitoring is set to on.
+# Default: Suspected botnet drone.
+botnet_ban_reason = Suspected botnet drone.
+
+[NoteServ]
+
+# Maximum notes that may be stored for one account.
+# Default: 25
+max_notes_per_account = 25
+
+# Maximum length of notes that may be stored. This is per-note.
+# Default: 400
+max_note_length = 400
+
+[LogServ]
+
+# Directory in which logs will be stored. Log files will be stored in
+# per-channel subdirectories to allow for usable log rotation.
+# Default = chanlogs
+logserv_directory = chanlogs
+
+# If enabled, only operators may assign LogServ to record a channel. Otherwise,
+# channel owners may also enable LogServ recording.
+# Default: on
+oper_only = on
+
+# The maximum age in days that logs will be stored. Set to 0 for disable. A
+# reasonable limit is strongly recommended for larger networks with limited
+# disk space. Log age may be configured per channel, but will never exceed this
+# setting.
+# Default: 120
+max_log_age = 120
+
+[NoLoad]
+##################
+# If you've read this file and configured everything, go read it again.
+# Once you're totally sure you've got it, comment or delete the following line.
+do_not_start = yes
