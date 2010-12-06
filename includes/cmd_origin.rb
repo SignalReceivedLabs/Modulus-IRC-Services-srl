@@ -18,25 +18,25 @@
 
 module Modulus
 
-  class ChanServ
+  class CommandOrigin
 
-    def initialize(services)
-      @services = services
+    attr_reader :raw, :source, :target, :cmd, :type, :arr, :args, :argsArr
 
-      services.addService("ChanServ", self)
-
-      services.clients.addClient(@services, "ChanServ", "Channel Registration Service")
-
-      #services.addHook(self, "cmd_cs_join", :privmsg)
-      #services.addMessageHook(self, "cmd_cs_join", :privmsg, "ChanServ")
-      services.addCmd(self, "ChanServ", "JOIN", "cmd_cs_join")
+    def initialize(raw, source, target, cmd, type)
+      @raw = raw
+      @source = source
+      @target = target
+      @type = type
+      @arr = cmd.split(" ")
+      @cmd = @arr[0]
+      @argsArr = @arr[1..@arr.length-1]
+      @args = @argsArr.join(" ")
     end
 
-    def cmd_cs_join(cmdOrigin)
-      $log.debug "ChanServ", "Got: #{cmdOrigin.raw}"
-      @services.link.joinChannel("ChanServ", cmdOrigin.args)
+    def to_s
+      "[#{@type}] #{@source} -> #{@target} [#{@raw}] :#{@message}"
     end
 
-  end #class 
+  end #class OriginInfo
 
 end #module Modulus

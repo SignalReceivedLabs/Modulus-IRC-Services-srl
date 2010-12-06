@@ -28,6 +28,7 @@ module Modulus
       @clients = Modulus::Clients.new(self)
       @serviceModules = Modulus::ServiceModules.new(self)
       @hooks = Hash.new
+      @cmdHooks = Hash.new
       @messageHooks = Hash.new
       
       @hostname = config.getOption("Core", "services_hostname")
@@ -109,9 +110,34 @@ module Modulus
       end
     end
 
+    def runCmds(cmdOrigin)
+      if @cmdHooks.has_key? cmdOrigin.target
+        if @cmdHooks[cmdOrigin.target].has_key? cmdOrigin.cmd
+
+          $log.debug "core", "Running all command hooks for #{cmdOrigin.cmd}"
+
+          @cmdHooks[cmdOrigin.target][cmdOrigin.cmd].each { |hook|
+            hook.run(cmdOrigin)
+          }
+        end
+      end
+    end
+
     def addService(name, modClass)
       @serviceModules.addService(name, modClass)
     end
+
+    def addCmd(modClass, receiver, cmdStr, funcName)
+      @cmdHooks[receiver] = Hash.new unless @cmdHooks.has_key? receiver
+      @cmdHooks[receiver][cmdStr] = Array.new unless @cmdHooks[receiver].has_key? cmdStr
+
+      $log.debug "core", "Adding command hook: #{cmdStr} for #{modClass.class}"
+
+      hook = Hook.new(self, modClass, funcName)
+
+      @cmdHooks[receiver][cmdStr] << hook
+    end
+
 
     def addMessageHook(modClass, funcName, hookType, receiver)
       @messageHooks[receiver] = Hash.new unless @messageHooks.has_key? receiver

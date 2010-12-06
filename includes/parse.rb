@@ -72,14 +72,23 @@ module Modulus
         @services.link.sendPong(origin)
       end
 
-      self.runCommands(origin)
+      self.work(origin)
     end
 
-    def runCommands(origin)
+    def work(origin)
       @services.runHooks(origin)
-      if origin.type == :privmsg or origin.type == :notice
+
+      if origin.message.length != 0
+
+        if origin.type == :privmsg or origin.type == :notice
+          # Could be a command!
+          cmdOrigin = CommandOrigin.new(origin.raw, origin.source, origin.target, origin.message, origin.type)
+
+          @services.runCmds(cmdOrigin)     
+        end
+      end
               
-      elsif origin.type == :kill and @services.clients.isMyClient? origin.target
+      if origin.type == :kill and @services.clients.isMyClient? origin.target
         # We check if this client is ours during connect, so this is fine.
         @services.link.sendKill(@services.hostname, origin.target, "Nick collision with services.")
       end
