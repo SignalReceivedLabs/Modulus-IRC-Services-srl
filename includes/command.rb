@@ -30,9 +30,9 @@ module Modulus
       @funcName = funcName
     end
 
-    def runCmd(originInfo)
-      $log.debug 'command', "Running command #{commandText} for #{originInfo.nick}"
-      
+    def runCmd(origin)
+      $log.debug 'command', "Running command #{@commandText} for #{origin.source}"
+      eval("@owner.#{@funcName}(origin)")
     end
 
   end #class Command

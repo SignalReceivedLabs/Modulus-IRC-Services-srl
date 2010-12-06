@@ -88,6 +88,10 @@ module Modulus
       thread.join
     end
 
+    def reply(origin, replyFrom,  message)
+      @link.sendNotice(replyFrom, origin.source, message)
+    end
+
     def runHooks(origin)
       if @hooks.has_key? origin.type
 
@@ -128,6 +132,7 @@ module Modulus
     end
 
     def addCmd(modClass, receiver, cmdStr, funcName)
+      cmdStr.upcase!
       @cmdHooks[receiver] = Hash.new unless @cmdHooks.has_key? receiver
       @cmdHooks[receiver][cmdStr] = Array.new unless @cmdHooks[receiver].has_key? cmdStr
 

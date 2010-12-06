@@ -35,6 +35,7 @@ module Modulus
     def cmd_cs_join(origin)
       $log.debug "ChanServ", "Got: #{origin.raw}"
       @services.link.joinChannel("ChanServ", origin.args)
+      @services.reply(origin, "ChanServ", "I have joined #{origin.args}.")
     end
 
   end #class 

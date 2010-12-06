@@ -29,7 +29,7 @@ module Modulus
       @type = type
       @message = message
       @arr = message.split(" ")
-      @cmd = @arr[0]
+      @cmd = @arr[0].upcase
       @argsArr = @arr[1..@arr.length-1]
       @args = @argsArr.join(" ")
     end

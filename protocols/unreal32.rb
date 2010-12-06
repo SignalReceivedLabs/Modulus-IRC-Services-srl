@@ -207,7 +207,7 @@ module Modulus
     end
 
     def sendNotice(source, target, str)
-      @sendq << ":#{source} B #{target} :#{str}"
+      @sendq << ":#{source} NOTICE #{target} :#{str}"
     end
 
     def createClient(nick, realName)
