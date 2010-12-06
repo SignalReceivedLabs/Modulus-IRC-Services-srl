@@ -18,41 +18,21 @@
 
 module Modulus
 
-  class Clients
+  class ChanServ
 
-    attr_reader :clients
+    def initialize(services)
+      @services = services
 
-    def initialize
-      @clients = Hash.new
+      services.addService("ChanServ", self)
+
+      services.clients.addClient(@services, "ChanServ", "Channel Registration Service")
+
+      #services.addHook(self, "cmd_cs_join", :privmsg)
+      services.addMessageHook(self, "cmd_cs_join", :privmsg, "ChanServ")
     end
 
-    def addClient(parent, nick, realName)
-      @clients[nick] = Pseudoclient.new(parent, nick, realName)
-    end
-
-    def getAll
-      return @clients
-    end
-
-    def disconnectClients
-      @clients.each { |client|
-        client.disconnect
-      }
-    end
-
-    def isMyClient?(nick)
-      @clients.has_key? nick
-    end
-
-    def connectAll
-      @clients.keys.each { |nick| self.connect(nick) }
-    end
-
-    def connect(nick)
-      return false unless self.isMyClient? nick
-
-      $log.debug "clients", "Attempting to connect #{nick}"
-      @clients[nick].connect
+    def cmd_cs_join(origin)
+      $log.debug "ChanServ", "Got: #{origin.message}"
     end
 
   end #class 
