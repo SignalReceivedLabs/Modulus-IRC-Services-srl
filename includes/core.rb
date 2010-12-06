@@ -85,6 +85,9 @@ module Modulus
       thread = startConnectionThread
 
       @clients.joinLogChan
+
+      @events.register(:database_connected, self, "prepAccountTable")
+
       Modulus.startDB(self)
 
 
@@ -171,6 +174,28 @@ module Modulus
     def startConnectionThread
       @link.connect(@clients.clients.values)
     end
+
+    def prepAccountTable
+      unless Account.table_exists?
+        ActiveRecord::Schema.define do
+          create_table :accounts do |t|
+
+            t.string :email, :null => false
+            t.string :password, :null => false
+            t.datetime :dateRegistered, :null => false
+            t.datetime :dateConnected
+            t.datetime :dateDisconnected
+            t.string :lastQuitMessage
+            t.boolean :suspended, :default => false
+            t.text :notes
+            t.boolean :noexpire, :default => false
+            t.string :verified, :default => false
+
+          end
+        end
+      end
+    end
+
 
   end #class 
 
