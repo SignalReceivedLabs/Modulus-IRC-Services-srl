@@ -52,7 +52,7 @@ module Modulus
           msg = ""
           if line.include? ":"
             splt = line.split(":")
-            msg = splt[1..splt.length-1]
+            msg = splt[1..splt.length-1].join(" ")
           end
 
           origin = OriginInfo.new(line, origin, lineArr[2], msg, cmdName)
