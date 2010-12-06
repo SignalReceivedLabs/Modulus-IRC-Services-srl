@@ -172,7 +172,7 @@ module Modulus
 
       clients.each { |client|
         puts "#{client.nick}"
-        @socket.puts "NICK #{client.nick} 0 0 #{user} #{host} #{host} #{Time.now.utc.to_i} +oS #{host} :#{client.realName}"
+        @socket.puts "NICK #{client.nick} 0 #{Time.now.utc.to_i} #{user} #{host} #{host} #{Time.now.utc.to_i} +oS #{host} :#{client.realName}"
       }
 
       @socket.puts "PROTOCTL ESVID NICKv2 TOKEN NICKIP SJ3 VHP UMODE2 CHANMODES CLK NOQUIT"
