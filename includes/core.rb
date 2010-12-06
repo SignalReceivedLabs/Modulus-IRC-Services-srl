@@ -83,6 +83,7 @@ module Modulus
 
       @clients.joinLogChan
 
+      $log.info "core", "IRC Services has started successfully."
       thread.join
     end
 
