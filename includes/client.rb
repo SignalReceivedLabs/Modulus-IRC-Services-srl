@@ -28,6 +28,14 @@ module Modulus
       @realName = realName
     end
 
+    def joinLogChan
+      logChan = @services.config.getOption("Core", "log_channel")
+
+      if logChan != nil
+        @services.link.joinChannel(@nick, logChan)
+      end
+    end
+
     def connect
       @services.link.createClient(@nick, @realName)
     end

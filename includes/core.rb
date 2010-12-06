@@ -20,10 +20,12 @@ module Modulus
 
   class Services
 
-    attr_reader :clients, :link, :hostname, :name
+    attr_reader :clients, :link, :hostname, :name, :config
 
     def initialize(config)
-      @clients = Modulus::Clients.new
+      @config = config
+
+      @clients = Modulus::Clients.new(self)
       @serviceModules = Modulus::ServiceModules.new(self)
       @hooks = Hash.new
       @messageHooks = Hash.new
@@ -77,7 +79,11 @@ module Modulus
       #@clients.connectAll
 
       $log.debug "preload", "Connecting."
-      startConnectionThread.join
+      thread = startConnectionThread
+
+      @clients.joinLogChan
+
+      thread.join
     end
 
     def runHooks(origin)
@@ -127,7 +133,7 @@ module Modulus
     end
 
     def startConnectionThread
-      @link.connect(@clients.clients.values).join
+      @link.connect(@clients.clients.values)
     end
 
   end #class 

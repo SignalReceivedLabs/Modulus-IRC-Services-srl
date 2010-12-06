@@ -22,7 +22,8 @@ module Modulus
 
     attr_reader :clients
 
-    def initialize
+    def initialize(services)
+      @services = services
       @clients = Hash.new
     end
 
@@ -44,6 +45,11 @@ module Modulus
       @clients.has_key? nick
     end
 
+    def joinLogChan
+      $log.debug "clients", "Sending all connected pseudoclients to the log channel, if it is configured."
+      @clients.values.each { |client| client.joinLogChan }
+    end
+
     def connectAll
       @clients.keys.each { |nick| self.connect(nick) }
     end
@@ -53,6 +59,7 @@ module Modulus
 
       $log.debug "clients", "Attempting to connect #{nick}"
       @clients[nick].connect
+      
     end
 
   end #class 
