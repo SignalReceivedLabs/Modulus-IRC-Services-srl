@@ -35,6 +35,7 @@ module Modulus
     end
 
     ActiveRecord::Base.logger = $log.logger
+    ActiveRecord::Base.colorize_logging = false
 
     $log.debug 'database', "Connecting to #{type} database."
 

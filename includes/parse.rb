@@ -59,14 +59,12 @@ module Modulus
 
           origin = OriginInfo.new(line, origin, lineArr[2], msg, cmdName)
           #puts "--> #{origin} sent #{cmdName} (#{line})"
-          puts "#{origin}"
         end
       else
         cmd = lineArr[0]
         cmdName = @cmdList[cmd]
 
         origin = OriginInfo.new(line, origin, lineArr[1], cmd, cmdName)
-        puts "#{origin}"
         #puts "->> unknown sent (#{line})"
       end
 
@@ -74,6 +72,7 @@ module Modulus
         @services.link.sendPong(origin)
       end
 
+      puts "#{origin}"
       self.work(origin)
     end
 
@@ -89,8 +88,9 @@ module Modulus
       end
               
       if origin.type == :kill and @services.clients.isMyClient? origin.target
-        # We check if this client is ours during connect, so this is fine.
-        @services.link.sendKill(@services.hostname, origin.target, "Nick collision with services.")
+        #@services.link.sendKill(@services.hostname, origin.target, "Nick collision with services.")
+        @services.link.destroyClient(origin.target)
+        @services.clients.connect origin.target
       end
     end
 
