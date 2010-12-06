@@ -25,6 +25,8 @@ module Modulus
     def initialize(config)
       @config = config
 
+      Modulus.startDB(self)
+
       @clients = Modulus::Clients.new(self)
       @serviceModules = Modulus::ServiceModules.new(self)
       @hooks = Hash.new
@@ -127,18 +129,18 @@ module Modulus
       end
     end
 
-    def addService(name, modClass)
-      @serviceModules.addService(name, modClass)
+    def addService(name, modClass, description)
+      @serviceModules.addService(name, modClass, description)
     end
 
-    def addCmd(modClass, receiver, cmdStr, funcName)
+    def addCmd(modClass, receiver, cmdStr, funcName, shortHelp, longHelp="")
       cmdStr.upcase!
       @cmdHooks[receiver] = Hash.new unless @cmdHooks.has_key? receiver
       @cmdHooks[receiver][cmdStr] = Array.new unless @cmdHooks[receiver].has_key? cmdStr
 
       $log.debug "core", "Adding command hook: #{cmdStr} for #{modClass.class}"
 
-      hook = Hook.new(self, modClass, funcName)
+      hook = Command.new(self, modClass, funcName, cmdStr, shortHelp, longHelp)
 
       @cmdHooks[receiver][cmdStr] << hook
     end

@@ -22,7 +22,7 @@ module Modulus
 
     attr_reader :commandText, :shortDesc, :longDesc
 
-    def initialize(sender, commandText, shortDesc, longDesc, funcName)
+    def initialize(services, sender, funcName, commandText, shortDesc, longDesc)
       @owner = sender
       @commandText = commandText
       @shortDesc = shortDesc
@@ -30,7 +30,7 @@ module Modulus
       @funcName = funcName
     end
 
-    def runCmd(origin)
+    def run(origin)
       $log.debug 'command', "Running command #{@commandText} for #{origin.source}"
       eval("@owner.#{@funcName}(origin)")
     end

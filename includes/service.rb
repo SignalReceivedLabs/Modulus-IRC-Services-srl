@@ -26,7 +26,8 @@ module Modulus
       @serviceModules = Hash.new
     end
 
-    def addService(name, mainClass)
+    def addService(name, mainClass, description)
+      #TODO: do something with description... module class?
       @serviceModules[name] = mainClass
     end
 

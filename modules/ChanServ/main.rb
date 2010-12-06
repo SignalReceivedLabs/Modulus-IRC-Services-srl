@@ -23,19 +23,29 @@ module Modulus
     def initialize(services)
       @services = services
 
-      services.addService("ChanServ", self)
+      services.addService("ChanServ", self,
+                         "Channel Registration Services
+                         
+                         ChanServ allows users to register channels, maintain
+                         channel settings, and maintain channel operator lists.")
 
       services.clients.addClient(@services, "ChanServ", "Channel Registration Service")
 
       #services.addHook(self, "cmd_cs_join", :privmsg)
       #services.addMessageHook(self, "cmd_cs_join", :privmsg, "ChanServ")
-      services.addCmd(self, "ChanServ", "JOIN", "cmd_cs_join")
+      services.addCmd(self, "ChanServ", "JOIN", "cmd_cs_join",
+                     "Force ChanServ to join the specified channel.")
     end
 
     def cmd_cs_join(origin)
       $log.debug "ChanServ", "Got: #{origin.raw}"
-      @services.link.joinChannel("ChanServ", origin.args)
-      @services.reply(origin, "ChanServ", "I have joined #{origin.args}.")
+
+      if origin.args.length == 0
+        @services.reply(origin, "ChanServ", "Usage: JOIN channel")
+      else
+        @services.link.joinChannel("ChanServ", origin.args)
+        @services.reply(origin, "ChanServ", "I have joined #{origin.args}.")
+      end
     end
 
   end #class 

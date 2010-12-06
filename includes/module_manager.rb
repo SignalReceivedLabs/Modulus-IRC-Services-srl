@@ -25,6 +25,7 @@ module Modulus
     end
 
     def addModule(mod)
+      # TODO: make an object for this so we have a place for the description.
       if @modules.has_key? mod.name
         $log.warn 'module-manager', "Attempted to add module #{mod.name} twice. Overwriting."
 
