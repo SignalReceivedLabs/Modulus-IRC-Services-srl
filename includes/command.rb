@@ -18,24 +18,23 @@
 
 module Modulus
 
-  class Pseudoclient
+  class Command
 
-    attr_reader :nick, :realName, :services
+    attr_reader :commandText, :shortDesc, :longDesc
 
-    def initialize(parent, nick, realName)
-      @services = parent
-      @nick = nick
-      @realName = realName
+    def initialize(sender, commandText, shortDesc, longDesc, funcName)
+      @owner = sender
+      @commandText = commandText
+      @shortDesc = shortDesc
+      @longDesc = longDesc
+      @funcName = funcName
     end
 
-    def connect
-      @services.link.createClient(@nick, @realName)
+    def runCmd(originInfo)
+      $log.debug 'command', "Running command #{commandText} for #{originInfo.nick}"
+      
     end
 
-    def disconnect
-      @services.link.destroyClient(@nick)
-    end
-
-  end #class Pseudoclient
+  end #class Command
 
 end #module Modulus

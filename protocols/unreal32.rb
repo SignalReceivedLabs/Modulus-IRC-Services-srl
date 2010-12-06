@@ -2,16 +2,16 @@
 #    Copyright (C) 2010  Modulus IRC Services Team
 #
 #    This program is free software: you can redistribute it and/or modify
-#    it under the terms of the GNU Affero General Public License as published by
+#    it under the terms of the GNU General Public License as published by
 #    the Free Software Foundation, either version 3 of the License, or
 #    (at your option) any later version.
 #
 #    This program is distributed in the hope that it will be useful,
 #    but WITHOUT ANY WARRANTY; without even the implied warranty of
 #    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#    GNU Affero General Public License for more details.
+#    GNU General Public License for more details.
 #
-#    You should have received a copy of the GNU Affero General Public License
+#    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 #
@@ -22,13 +22,126 @@ module Modulus
 
     require 'socket'
 
-    def initialize(config)
+    def initialize(config, parent)
+      @parent = parent
       @config = config
       @sendq = Queue.new
-      @clients = Array.new
+
+      @cmdList = {
+
+        # Server Commands
+
+        "8" => :ping,
+        "PING" => :ping,
+        "9" => :pong,
+        "PONG" => :ping,
+
+        "PASS" => :pass,
+        "PROTOCTL" => :protoctl,
+        "SERVER" => :server,
+        "ES" => :endOfSync,
+        "EOS" => :endOfSync,
+        "NETINFO" => :netInfo,
+        "AO" => :netInfo,
+        "&" => :nick,
+        "NICK" => :nick,
+
+        "," => :quit,
+        "QUIT" => :quit,
+
+        "~" => :sjoin,
+        "SJOIN" => :sjoin,
+        "AP" => :sendumode,
+        "SENDUMODE" => :sendumode,
+        "AU" => :smo,
+        "SMO" => :smo,
+        "Ss" => :sendsno,
+        "SENDSNO" => :sendsno,
+        "TKL" => :tkl,
+        "BD" => :tkl,
+        "KILL" => :kill,
+        "SETHOST" => :sethost,
+        "SWHOIS" => :swhois,
+
+        "#" => :whois,
+        "WHOIS" => :whois,
+
+        # Channel Commands
+
+        "C" => :join,
+        "JOIN" => :join,
+        "D" => :part,
+        "PART" => :part,
+
+        "H" => :kick,
+        "KICK" => :kick,
+        "G" => :mode,
+        "MODE" => :mode,
+        "*" => :channelInvite,
+        "INVITE" => :channelInvite,
+        "AX" => :sajoin,
+        "SAJOIN" => :sajoin,
+        "AY" => :sapart,
+        "SAPART" => :sapart,
+        "o" => :samode,
+        "SAMODE" => :samode,
+        ")" => :topic,
+        "TOPIC" => :topic,
+
+        # Services Commands
+
+        "h" => :svskill,
+        "SVSKILL" => :svskill,
+        "n" => :svsmode,
+        "SVSMODE" => :svsmode,
+        "v" => :svs2mode,
+        "SVS2MODE" => :svs2mode,
+        "BV" => :svssno,
+        "SVSSNO" => :svssno,
+        "BW" => :svs2sno,
+        "SVS2SNO" => :svs2sno,
+        "e" => :svsnick,
+        "SVSNICK" => :svsnick,
+        "BX" => :svsjoin,
+        "SVSJOIN" => :svsjoin,
+        "BT" => :svspart,
+        "SVSPART" => :svspart,
+        "BB" => :svso,
+        "SVSO" => :svso,
+        "f" => :svsnoop,
+        "SVSNOOP" => :svsnoop,
+        "BR" => :svsnline,
+        "SVSNLINE" => :svsnline,
+        "BC" => :svsfline,
+        "SVSFLINE" => :svsfline,
+
+        # Chat Commands
+
+        "!" => :privmsg,
+        "PRIVMSG" => :privmsg,
+        "B" => :notice,
+        "NOTICE" => :notice,
+        "p" => :chatops,
+        "CHATOPS" => :chatops,
+        "=" => :wallops,
+        "WALLOPS" => :wallops,
+        "]" => :globops,
+        "GLOBOPS" => :globops,
+        "x" => :adchat,
+        "ADCHAT" => :adchat,
+        "AC" => :nachat,
+        "NACHAT" => :nachat,
+
+        # TKL Commands
+
+        "c" => :sqline,
+        "SQLINE" => :sqline,
+        "d" => :unsqline,
+        "UNSQLINE" => :unsqline
+      }
     end
 
-    def connect
+    def connect(clients)
       $log.debug "protocol-unreal32", "Starting connection to IRC server."
       host = @config.getOption('Network', 'link_address')
       port = @config.getOption('Network', 'link_port')
@@ -54,8 +167,12 @@ module Modulus
         exit -1
       end
 
-      @clients.each { |client|
-        @socket.puts "NICK #{client.nick} 0 0 #{client.user} #{client.host} #{@config.getOption('Network', 'services_hostname')} 0 +oS #{host} :#{@config.getOption('Network', 'services_name')}"
+      host = @config.getOption('Network', 'services_hostname')
+      user = @config.getOption('Network', 'services_user')
+
+      clients.each { |client|
+        puts "#{client.nick}"
+        @socket.puts "NICK #{client.nick} 0 0 #{user} #{host} #{host} #{Time.now.utc.to_i} +oS #{host} :#{client.realName}"
       }
 
       @socket.puts "PROTOCTL ESVID NICKv2 TOKEN NICKIP SJ3 VHP UMODE2 CHANMODES CLK NOQUIT"
@@ -66,15 +183,23 @@ module Modulus
       return self.startRecvThread
     end
 
-    def closeConnection
+    def closeConnection(reason="Services is shutting down.")
       if @socket != nil
+        $log.info "protocol-unreal32", "Closing connection: #{reason}"
+
         name = @config.getOption('Network', 'services_hostname')
         @socket.puts ":#{name} SQUIT #{name} :Services is shutting down."
       end
     end
 
-    def createPreSyncClient(nick, user, host)
-      @clients << Pseudoclient.new(nick, user, host)
+    def sendPong(origin)
+      origin.arr[1][0] = "" if origin.arr[1].start_with? ":"
+
+      if origin.arr.length == 2
+        @sendq << "PONG #{@config.getOption('Network', 'services_hostname')} #{origin.arr[1]}"
+      else
+        @sendq << "PONG #{origin.arr[2]} #{origin.arr[1]}"
+      end
     end
 
     def sendPrivmsg(source, target, str)
@@ -85,8 +210,21 @@ module Modulus
       @sendq << ":#{source} B #{target} :#{str}"
     end
 
-    def createClient(nick, user, host)
-      @sendq << "NICK #{nick} 0 0 #{user} #{host} #{@config.getOption('Network', 'services_hostname')} 0 +oS #{host} :#{@config.getOption('Network', 'services_name')}"
+    def createClient(nick, realName)
+      #@sendq << ":#{nick} SVSKILL #{nick} :Collision with services."
+
+      host = @config.getOption('Network', 'services_hostname')
+      user = @config.getOption('Network', 'services_user')
+
+      @sendq << "NICK #{nick} 1 #{Time.now.utc.to_i} #{user} #{host} #{host} * +oS * :#{realName}"
+    end
+
+    def sendKill(source, target, reason)
+      @sendq << ":#{source} KILL #{target} :#{reason}"
+    end
+
+    def destroyClient(nick, reason="")
+      @sendq << ":#{nick} QUIT :#{reason}"
     end
 
     def joinChannel(nick, channel)
@@ -127,6 +265,7 @@ module Modulus
     def forceChannelMode(source, target, modeChanges, modeParams)
       @sendq << ":#{source} o #{target} #{modeChanges} #{modeParams}"
     end
+
   end #class ProtocolAbstraction
 
 end #module Modulus

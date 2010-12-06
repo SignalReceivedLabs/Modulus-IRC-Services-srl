@@ -18,24 +18,23 @@
 
 module Modulus
 
-  class Pseudoclient
+  class OriginInfo
 
-    attr_reader :nick, :realName, :services
+    attr_reader :raw, :source, :target, :message, :type, :arr
 
-    def initialize(parent, nick, realName)
-      @services = parent
-      @nick = nick
-      @realName = realName
+    def initialize(raw, source, target, message, type)
+      @raw = raw
+      @source = source
+      @target = target
+      @message = message.to_s
+      @type = type
+      @arr = raw.split(" ")
     end
 
-    def connect
-      @services.link.createClient(@nick, @realName)
+    def to_s
+      "[#{@type}] #{@source} -> #{@target} [#{@raw}] :#{@message}"
     end
 
-    def disconnect
-      @services.link.destroyClient(@nick)
-    end
-
-  end #class Pseudoclient
+  end #class OriginInfo
 
 end #module Modulus

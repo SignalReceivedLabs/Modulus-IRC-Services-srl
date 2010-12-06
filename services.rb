@@ -4,16 +4,16 @@
 #    Copyright (C) 2010  Modulus IRC Services Team
 #
 #    This program is free software: you can redistribute it and/or modify
-#    it under the terms of the GNU Affero General Public License as published by
+#    it under the terms of the GNU General Public License as published by
 #    the Free Software Foundation, either version 3 of the License, or
 #    (at your option) any later version.
 #
 #    This program is distributed in the hope that it will be useful,
 #    but WITHOUT ANY WARRANTY; without even the implied warranty of
 #    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#    GNU Affero General Public License for more details.
+#    GNU General Public License for more details.
 #
-#    You should have received a copy of the GNU Affero General Public License
+#    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 #
@@ -62,45 +62,12 @@ enumerateIncludes("includes")
 # Now that we have the application loaded, let's go ahead and bring out configuration into memory.
 # We'll be needing it before we can do any real work, anyway.
 # I've gone ahead and made this global for now. Maybe that will change as this gets bigger.
-$config = Modulus::Config.new("#{$options[:configFile]}")
+config = Modulus::Config.new("#{$options[:configFile]}")
 
 # Okay, we got that taken care of. We're going to want to log as much as we
 # can. Now that we know where to store logs, go ahead and start the logger.
 # We'll make this a global variable so we can log from anywhere.
 
-$log = Modulus::Log.new("#{$config.getOption('Core', 'log_location')}", $config.getOption('Core', 'log_rotation_period'))
+#$log = Modulus::Log.new("#{config.getOption('Core', 'log_location')}", config.getOption('Core', 'log_rotation_period'))
 
-$log.info "preload", "#{NAME} version #{VERSION} is starting."
-
-protocol = $config.getOption('Network', 'link_protocol')
-
-$log.debug "preload", "Checking for protocol handler for #{protocol}."
-
-if File.exists? "protocols/#{protocol}.rb"
-  $log.debug "preload", "Handler exists."
-else
-  $log.fatal "preload", "No handler exists for #{protocol}."
-  $stderr.puts "Fatal Error: Could not find the handler for link protocol #{protocol}."
-  exit -1
-end
-
-load("protocols/#{protocol}.rb")
-
-link = Modulus::ProtocolAbstraction.new($config)
-
-trap("INT"){ link.closeConnection() }
-trap("TERM"){ link.closeConnection() }
-trap("KILL"){ exit } # Kill (signal 9) is pretty hardcore. Just exit!
-
-trap("HUP", "IGNORE") # We don't need to die on HUP.
-
-Dir["./modules/*"].each { |servName|
-  servName = File.basename servName
-  $log.debug "preload", "Create pre-sync client #{servName}."
-  link.createPreSyncClient(servName, $config.getOption('Network', 'services_user'), $config.getOption('Network', 'services_hostname'))
-}
-
-#link.createClient(servName, $config.getOption('Network', 'services_user'), $config.getOption('Network', 'services_hostname'))
-
-$log.debug "preload", "Connecting."
-link.connect.join
+Modulus::Services.new(config)
