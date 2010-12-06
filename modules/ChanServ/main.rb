@@ -32,9 +32,9 @@ module Modulus
       services.addCmd(self, "ChanServ", "JOIN", "cmd_cs_join")
     end
 
-    def cmd_cs_join(cmdOrigin)
-      $log.debug "ChanServ", "Got: #{cmdOrigin.raw}"
-      @services.link.joinChannel("ChanServ", cmdOrigin.args)
+    def cmd_cs_join(origin)
+      $log.debug "ChanServ", "Got: #{origin.raw}"
+      @services.link.joinChannel("ChanServ", origin.args)
     end
 
   end #class 

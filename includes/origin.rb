@@ -20,15 +20,18 @@ module Modulus
 
   class OriginInfo
 
-    attr_reader :raw, :source, :target, :message, :type, :arr
+    attr_reader :raw, :source, :target, :message, :cmd, :type, :arr, :args, :argsArr
 
     def initialize(raw, source, target, message, type)
       @raw = raw
       @source = source
       @target = target
-      @message = message.to_s
       @type = type
-      @arr = raw.split(" ")
+      @message = message
+      @arr = message.split(" ")
+      @cmd = @arr[0]
+      @argsArr = @arr[1..@arr.length-1]
+      @args = @argsArr.join(" ")
     end
 
     def to_s

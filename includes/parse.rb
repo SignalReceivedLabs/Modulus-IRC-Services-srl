@@ -53,6 +53,8 @@ module Modulus
           if line.include? ":"
             splt = line.split(":")
             msg = splt[1..splt.length-1].join(" ")
+          else
+            msg = line
           end
 
           origin = OriginInfo.new(line, origin, lineArr[2], msg, cmdName)
@@ -63,7 +65,7 @@ module Modulus
         cmd = lineArr[0]
         cmdName = @cmdList[cmd]
 
-        origin = OriginInfo.new(line, origin, lineArr[1], msg, cmdName)
+        origin = OriginInfo.new(line, origin, lineArr[1], cmd, cmdName)
         puts "#{origin}"
         #puts "->> unknown sent (#{line})"
       end
@@ -82,9 +84,7 @@ module Modulus
 
         if origin.type == :privmsg or origin.type == :notice
           # Could be a command!
-          cmdOrigin = CommandOrigin.new(origin.raw, origin.source, origin.target, origin.message, origin.type)
-
-          @services.runCmds(cmdOrigin)     
+          @services.runCmds(origin)
         end
       end
               
