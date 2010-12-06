@@ -20,15 +20,15 @@ module Modulus
 
   class Services
 
-    attr_reader :clients, :link, :hostname, :name, :config
+    attr_reader :clients, :link, :hostname, :name, :config, :events
 
     def initialize(config)
       @config = config
 
-      Modulus.startDB(self)
-
       @clients = Modulus::Clients.new(self)
       @serviceModules = Modulus::ServiceModules.new(self)
+      @events = Modulus::Events.new
+
       @hooks = Hash.new
       @cmdHooks = Hash.new
       @messageHooks = Hash.new
@@ -38,16 +38,16 @@ module Modulus
 
       $log = Modulus::Log.new(self, config)
 
-      $log.info "preload", "#{NAME} version #{VERSION} is starting."
+      $log.info "core", "#{NAME} version #{VERSION} is starting."
 
       protocol = config.getOption('Network', 'link_protocol')
 
-      $log.debug "preload", "Checking for protocol handler for #{protocol}."
+      $log.debug "core", "Checking for protocol handler for #{protocol}."
 
       if File.exists? "protocols/#{protocol}.rb"
-        $log.debug "preload", "Handler exists."
+        $log.debug "core", "Handler exists."
       else
-        $log.fatal "preload", "No handler exists for #{protocol}."
+        $log.fatal "core", "No handler exists for #{protocol}."
         $stderr.puts "Fatal Error: Could not find the handler for link protocol #{protocol}."
         exit -1
       end
@@ -70,7 +70,7 @@ module Modulus
 
       Dir["./modules/*"].each { |servDir|
         servName = File.basename servDir
-        $log.debug "preload", "Attemping to load module #{servName}."
+        $log.debug "core", "Attemping to load module #{servName}."
 
         Dir["#{servDir}/*.rb"].each { |file|
           load(file)
@@ -81,10 +81,12 @@ module Modulus
 
       #@clients.connectAll
 
-      $log.debug "preload", "Connecting."
+      $log.debug "core", "Connecting."
       thread = startConnectionThread
 
       @clients.joinLogChan
+      Modulus.startDB(self)
+
 
       $log.info "core", "IRC Services has started successfully."
       thread.join

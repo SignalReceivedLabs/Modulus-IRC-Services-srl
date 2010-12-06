@@ -3,3 +3,4 @@ services.conf
 *.tmp
 *.*~
 logs/*
+*.db

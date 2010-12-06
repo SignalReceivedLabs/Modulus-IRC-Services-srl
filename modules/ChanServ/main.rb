@@ -29,10 +29,13 @@ module Modulus
                          ChanServ allows users to register channels, maintain
                          channel settings, and maintain channel operator lists.")
 
+      services.events.register(:database_connected, self, "dbConnected")
+
       services.clients.addClient(@services, "ChanServ", "Channel Registration Service")
 
-      #services.addHook(self, "cmd_cs_join", :privmsg)
-      #services.addMessageHook(self, "cmd_cs_join", :privmsg, "ChanServ")
+      services.addCmd(self, "ChanServ", "REGISTER", "cmd_cs_register",
+                     "Register the specified channel")
+
       services.addCmd(self, "ChanServ", "JOIN", "cmd_cs_join",
                      "Force ChanServ to join the specified channel.")
     end
@@ -46,6 +49,57 @@ module Modulus
         @services.link.joinChannel("ChanServ", origin.args)
         @services.reply(origin, "ChanServ", "I have joined #{origin.args}.")
       end
+    end
+
+    def cmd_cs_register(origin)
+      $log.debug "ChanServ", "Got: #{origin.raw}"
+
+      if origin.args.length == 0
+        @services.reply(origin, "ChanServ", "Usage: REGISTER channel")
+      else
+        if Channel.find_by_name(origin.args)
+          @services.reply(origin, "ChanServ", "The channel #{origin.args} is already registered.")
+        else
+          Channel.create(
+            :name => origin.args,
+            :dateRegistered => DateTime.now,
+            :note => "Test Channel")
+
+          @services.link.joinChannel("ChanServ", origin.args)
+          @services.reply(origin, "ChanServ", "You have registered #{origin.args}.")
+        end
+      end
+    end
+
+    def dbConnected
+      $log.debug "ChanServ", "Received database_connected callback. Beginning database check."
+
+      unless Channel.table_exists?
+        ActiveRecord::Schema.define do
+          create_table :channels do |t|
+            t.column :owner_id, :integer
+            t.column :name, :string, :null => false
+            t.column :lastTopic, :string
+            t.column :dateRegistered, :datetime, :null => false
+            t.column :dateLastActive, :datetime
+            t.column :heir, :integer
+            t.column :note, :text
+          end
+        end
+      end
+
+      joinRegistered
+      
+    end
+
+    def joinRegistered
+      Channel.find(:all).each { |c|
+        @services.link.joinChannel("ChanServ", c.name)
+      }
+    end
+
+    class Channel < ActiveRecord::Base
+    #  belongs_to :user
     end
 
   end #class 

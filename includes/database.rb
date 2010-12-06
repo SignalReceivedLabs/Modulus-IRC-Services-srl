@@ -20,8 +20,9 @@ module Modulus
   require 'rubygems'
   require 'active_record'
 
-
   def Modulus.startDB(services)
+    $log.info 'database', 'Starting database connection for the first time this session.'
+
     type = services.config.getOption('Database', 'database_type')
     type.downcase! unless type == nil
 
@@ -33,15 +34,18 @@ module Modulus
       exit -1
     end
 
+    ActiveRecord::Base.logger = $log.logger
+
+    $log.debug 'database', "Connecting to #{type} database."
+
     case type
-      when "sqlite"
+      when "sqlite3"
         # This is the filename. It's all we need. Sweet!
         name = services.config.getOption('Database', 'database_name')
 
         ActiveRecord::Base.establish_connection(
-          :adapter => "sqlite",
+          :adapter => "sqlite3",
           :database => name)
-
 
       when "mysql"
         host = services.config.getOption('Database', 'database_address')
@@ -69,8 +73,11 @@ module Modulus
           :username => username,
           :password => password,
           :database => name)
+
     end
 
+    $log.debug 'database', "Connection to database successful."
+    services.events.event(:database_connected)
 
   end
 end #module Modulus

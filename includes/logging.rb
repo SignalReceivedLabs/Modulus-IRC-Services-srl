@@ -20,6 +20,8 @@ module Modulus
 
   class Log
 
+    attr_reader :logger
+
     require 'logger'
 
     DISABLED = -1

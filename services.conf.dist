@@ -164,9 +164,9 @@ allow_no_expire = no
 [Database]
 
 # The type of database used to store account and module data.
-# Currently supported: mysql
-# Default: mysql
-database_type = mysql
+# Currently supported: mysql, sqlite3, postgres
+# Default: sqlite3
+database_type = sqlite3
 
 # The following 4 options are only used if you selected mysql.
 
