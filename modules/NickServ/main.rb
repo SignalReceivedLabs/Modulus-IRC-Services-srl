@@ -66,8 +66,10 @@ module Modulus
           if nicks.length != 0
             @services.reply(origin, "NickServ", "Nicks registered to #{email}:")
 
+            @services.reply(origin, "NickServ", sprintf("%30.30s  %-25.25s", "Nick", "Date Registered"))
+
             nicks.each { |nick|
-              @services.reply(origin, "NickServ", "   #{nick.nick}")
+              @services.reply(origin, "NickServ", sprintf("%30.30s  %-25.25s", nick.nick, nick.dateRegistered))
             }
 
             @services.reply(origin, "NickServ", "Total registered nicks: #{nicks.length}")
