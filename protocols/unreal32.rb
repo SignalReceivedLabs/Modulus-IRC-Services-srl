@@ -22,8 +22,8 @@ module Modulus
 
     require 'socket'
 
-    def initialize(config, parent)
-      @parent = parent
+    def initialize(config, services)
+      @services = services
       @config = config
       @sendq = Queue.new
 
@@ -155,14 +155,16 @@ module Modulus
       @socket.puts "SERVER #{@config.getOption('Network', 'services_hostname')} 1 :#{@config.getOption('Network', 'services_name')}"
       #@socket.puts "SERVER #{@config.getOption('Network', 'services_hostname')} 1 :U2309-0 #{@config.getOption('Network', 'services_name')}"
       
-      unless @socket.gets.chomp.include? "ESVID"
-        p lastMsg
+      lastMsg = @socket.gets.chomp
+      puts lastMsg
+      unless lastMsg.include? "ESVID"
         $stderr.puts "Connection failed: Server does not support ESVID."
         exit -1
       end
 
-      unless @socket.gets.chomp == "PASS :#{@config.getOption('Network', 'link_password')}"
-        p lastMsg
+      lastMsg = @socket.gets.chomp
+      puts lastMsg
+      unless lastMsg == "PASS :#{@config.getOption('Network', 'link_password')}"
         $stderr.puts "Connection failed: Server replied with incorrect password."
         exit -1
       end
@@ -175,7 +177,7 @@ module Modulus
         @socket.puts "NICK #{client.nick} 0 #{Time.now.utc.to_i} #{user} #{host} #{host} #{Time.now.utc.to_i} +oS #{host} :#{client.realName}"
       }
 
-      @socket.puts "PROTOCTL ESVID NICKv2 TOKEN NICKIP SJ3 VHP UMODE2 CHANMODES CLK NOQUIT"
+      @socket.puts "PROTOCTL ESVID NICKv2 NICKIP CLK TOKEN SJ3 VHP UMODE2 CHANMODES NOQUIT"
       @socket.puts "ES"
       @socket.puts "AO 0 #{Time.now.utc.to_i} 0 * 0 0 0 :#{@config.getOption('Network', 'network_name')}"
 
@@ -190,6 +192,17 @@ module Modulus
         name = @config.getOption('Network', 'services_hostname')
         @socket.puts ":#{name} SQUIT #{name} :Services is shutting down."
       end
+    end
+
+    def createUser(origin)
+      #TODO: Are we using NICKv2?
+      # &     nick        hopcount    timestamp   username    hostname      server                  servicestamp +usermodes virtualhost cloakhost nickipaddr :realname
+      # &     nick        hopcount    timestamp   username    hostname      server                  servicestamp                                             :realname
+      # NICK  <nickname>  <hopcount>              <username>  <host>        <servertoken>           <umode>                                                  <realname>
+      # NICK  Kabaka      1           1291720576  kabaka      localhost     draco.vacantminded.com  *                                                        :kabaka
+      #User.new(origin.arr[])
+      puts origin.raw
+      exit
     end
 
     def sendPong(origin)
@@ -213,7 +226,7 @@ module Modulus
     def createClient(nick, realName)
       #@sendq << ":#{nick} SVSKILL #{nick} :Collision with services."
 
-      host = @config.getOption('Network', 'services_hostname')
+      host = @configyy.getOption('Network', 'services_hostname')
       user = @config.getOption('Network', 'services_user')
 
       @sendq << "NICK #{nick} 1 #{Time.now.utc.to_i} #{user} #{host} #{host} * +oS * :#{realName}"
@@ -225,6 +238,14 @@ module Modulus
 
     def destroyClient(nick, reason="")
       @sendq << ":#{nick} QUIT :#{reason}"
+    end
+
+    def svsmode(target, mode)
+      @sendq << ":#{@config.getOption('Network', 'services_hostname')} n #{target } #{mode}"
+    end
+
+    def svs2mode(target, mode)
+      @sendq << ":#{@config.getOption('Network', 'services_hostname')} v #{target } #{mode}"
     end
 
     def joinChannel(nick, channel)

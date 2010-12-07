@@ -36,6 +36,9 @@ module Modulus
       services.addCmd(self, "NickServ", "IDENTIFY", "cmd_ns_identify",
                      "Log in to your account and verify your ownership of your current nick.")
 
+      services.addCmd(self, "NickServ", "UNIDENTIFY", "cmd_ns_unidentify",
+                     "Logs you out of your services account. If you are not logged in, modes are cleared anyway.")
+
       services.addCmd(self, "NickServ", "LIST", "cmd_ns_list",
                      "List all nicks currently registered to your account.")
 
@@ -83,6 +86,13 @@ module Modulus
       end
     end
       
+    def cmd_ns_unidentify(origin)
+      $log.debug "NickServ", "Got: #{origin.raw}"
+
+      @services.link.svsmode(origin.source, "-r+d *")
+      @services.reply(origin, "NickServ", "You have been logged out.")
+    end
+
     def cmd_ns_identify(origin)
       $log.debug "NickServ", "Got: #{origin.raw}"
       
@@ -107,6 +117,7 @@ module Modulus
 
           else
             if account.password == password
+              @services.link.svsmode(origin.source, "+rd #{account.email}")
 
               @services.reply(origin, "NickServ", "You have been identified as the owner of #{origin.source}")
               $log.info "NickServ", "#{origin.source} has been identified as account #{account.email}."

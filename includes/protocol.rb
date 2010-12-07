@@ -23,16 +23,24 @@ module Modulus
     def startRecvThread
       @readThread = Thread.new {
 
-        $log.debug "protocol", "Socket reader thread started."
-        parser = Modulus::Parser.new(@cmdList, @parent)
+        #while not @services.quitting
+        # TODO: Reconnections!
 
-        while line = @socket.gets
-          #TODO: Parse this, hand it off to something else.
-          #puts "<-- #{line}"
-          parser.parse line
-        end
+          $log.debug "protocol", "Socket reader thread started."
+          parser = Modulus::Parser.new(@cmdList, @services)
+
+          while line = @socket.gets
+            #TODO: Parse this, hand it off to something else.
+            #puts "<-- #{line}"
+            parser.parse line
+          end
+
+          $log.info "protocol", "Connection to the server has been lost."
+
+        #end
 
         $log.debug "protocol", "Socket reader thread ending."
+
       }
     end
 

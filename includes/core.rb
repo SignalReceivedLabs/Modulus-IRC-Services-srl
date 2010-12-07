@@ -92,7 +92,6 @@ module Modulus
 
       Modulus.startDB(self)
 
-
       $log.info "core", "IRC Services has started successfully."
       thread.join
     end
