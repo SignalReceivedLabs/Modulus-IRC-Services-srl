@@ -65,7 +65,7 @@ module Modulus
             :dateRegistered => DateTime.now,
             :note => "Test Channel")
 
-          @services.link.joinChannel("ChanServ", origin.args)
+          @services.clients.clients["ChanServ"].addChannel(origin.args)
           @services.reply(origin, "ChanServ", "You have registered #{origin.args}.")
         end
       end
@@ -89,12 +89,12 @@ module Modulus
       end
 
       joinRegistered
-      
     end
 
     def joinRegistered
       Channel.find(:all).each { |c|
-        @services.link.joinChannel("ChanServ", c.name)
+        #@services.link.joinChannel("ChanServ", c.name)
+        @services.clients.clients["ChanServ"].addChannel(c.name)
       }
     end
 

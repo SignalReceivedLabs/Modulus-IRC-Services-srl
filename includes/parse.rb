@@ -88,8 +88,10 @@ module Modulus
       end
               
       if origin.type == :kill and @services.clients.isMyClient? origin.target
+        #TODO: Make this work for all situations.
+
         #@services.link.sendKill(@services.hostname, origin.target, "Nick collision with services.")
-        @services.link.destroyClient(origin.target)
+        #@services.link.destroyClient(origin.target)
         @services.clients.connect origin.target
       end
     end

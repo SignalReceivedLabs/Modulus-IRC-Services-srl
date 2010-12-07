@@ -26,22 +26,34 @@ module Modulus
       @services = parent
       @nick = nick
       @realName = realName
+      @channels = Array.new
     end
 
     def joinLogChan
       logChan = @services.config.getOption("Core", "log_channel")
 
       if logChan != nil
-        @services.link.joinChannel(@nick, logChan)
+        self.addChannel logChan
       end
+    end
+
+    def addChannel(channel)
+      @channels << channel
+      @services.link.joinChannel(@nick, channel)
+    end
+
+    def joinAllChannels
+      @channels.each { |c|
+        @services.link.joinChannel(@nick, c)
+      }
     end
 
     def connect
       @services.link.createClient(@nick, @realName)
     end
 
-    def disconnect
-      @services.link.destroyClient(@nick)
+    def disconnect(reason="")
+      @services.link.destroyClient(@nick, reason)
     end
 
   end #class Pseudoclient

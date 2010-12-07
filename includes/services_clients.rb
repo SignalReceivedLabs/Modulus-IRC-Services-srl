@@ -59,6 +59,7 @@ module Modulus
 
       $log.debug "clients", "Attempting to connect #{nick}"
       @clients[nick].connect
+      @clients[nick].joinAllChannels
       
     end
 
