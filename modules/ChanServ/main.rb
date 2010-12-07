@@ -34,7 +34,13 @@ module Modulus
       services.clients.addClient(@services, "ChanServ", "Channel Registration Service")
 
       services.addCmd(self, "ChanServ", "REGISTER", "cmd_cs_register",
-                     "Register the specified channel")
+                     "Register the specified channel.")
+
+      services.addCmd(self, "ChanServ", "DROP", "cmd_cs_drop",
+                     "Drop the registration for the specified channel.")
+
+      services.addCmd(self, "ChanServ", "LIST", "cmd_cs_list",
+                     "List all channels registered to your services account.")
 
       services.addCmd(self, "ChanServ", "JOIN", "cmd_cs_join",
                      "Force ChanServ to join the specified channel.")
@@ -43,7 +49,7 @@ module Modulus
     def cmd_cs_join(origin)
       $log.debug "ChanServ", "Got: #{origin.raw}"
 
-      if origin.args.length == 0
+      if origin.argsArr.length != 1
         @services.reply(origin, "ChanServ", "Usage: JOIN channel")
       else
         @services.link.joinChannel("ChanServ", origin.args)
@@ -51,23 +57,75 @@ module Modulus
       end
     end
 
+    def cmd_cs_list(origin)
+      $log.debug "ChanServ", "Got: #{origin.raw}"
+      
+      user = @services.users.find(origin.source)
+
+      unless user.loggedIn?
+        @services.reply(origin, "ChanServ", "You must be logged in to a services account in order to use this command.")
+        return
+      end
+
+      channels = Channel.find_all_by_owner_id(Account.find_by_email(user.svid))
+
+      if channels.length != 0
+      
+        @services.reply(origin, "ChanServ", "Channels registered to #{user.svid}:")
+        @services.reply(origin, "ChanServ", sprintf("%30.30s  %-25.25s", "Channel", "Date Registered"))
+
+        channels.each { |channel|
+          @services.reply(origin, "ChanServ", sprintf("%30.30s  %-25.25s", channel.name, channel.dateRegistered))
+        }
+
+        @services.reply(origin, "ChanServ", "Total channels registered: #{channels.length}.")
+      else
+        @services.reply(origin, "ChanServ", "There are currently no channels registered to #{user.svid}.")
+      end
+    end
+
     def cmd_cs_register(origin)
       $log.debug "ChanServ", "Got: #{origin.raw}"
 
-      if origin.args.length == 0
+      if origin.argsArr.length != 1
         @services.reply(origin, "ChanServ", "Usage: REGISTER channel")
       else
+        user = @services.users.find(origin.source)
+
+        unless user.loggedIn?
+          @services.reply(origin, "ChanServ", "You must be logged in to a services account in order to register a channel.")
+          return
+        end
+
         if Channel.find_by_name(origin.args)
           @services.reply(origin, "ChanServ", "The channel #{origin.args} is already registered.")
         else
+
+          account = Account.find_by_email(user.svid)
+
           Channel.create(
             :name => origin.args,
-            :dateRegistered => DateTime.now,
-            :note => "Test Channel")
+            :owner_id => account.id,
+            :dateRegistered => DateTime.now)
 
           @services.clients.clients["ChanServ"].addChannel(origin.args)
           @services.reply(origin, "ChanServ", "You have registered #{origin.args}.")
         end
+      end
+    end
+
+    def cmd_cs_drop(origin)
+      $log.debug "ChanServ", "Got: #{origin.raw}"
+
+      if origin.argsArr.length != 2
+        @services.reply(origin, "ChanServ", "Usage: DROP channel password")
+      else
+        channel = Channel.find_by_name(origin.argsArr[0])
+        channel.destroy
+
+        @services.clients.clients["ChanServ"].removeChannel(origin.argsArr[0])
+        @services.reply(origin, "ChanServ", "You have dropped the registration for #{origin.argsArr[0]}.")
+        $log.info 'ChanServ', "#{origin.source} has dropped the registration for #{origin.argsArr[0]}."
       end
     end
 

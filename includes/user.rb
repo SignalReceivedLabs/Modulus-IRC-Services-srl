@@ -22,15 +22,19 @@ module Modulus
 
     attr_accessor :nick, :svid, :username, :hostname, :channels, :timestamp, :modes, :loggedIn
 
-    def initialize(nick, svid, username, hostname, timestamp, modes)
+    def initialize(nick, svid, username, hostname, timestamp)
       @nick = nick
       @svid = svid
       @username = username
       @hostname = hostname
       @timestamp = timestamp
-      @modes = modes
-      @loggedIn = false
+      @modes = Array.new
+      @loggedIn = (svid != '*')
     end
-  end #class User
 
+    def loggedIn?
+      @loggedIn
+    end
+
+  end #class User
 end #module Modulus

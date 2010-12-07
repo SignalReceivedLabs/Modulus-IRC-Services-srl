@@ -177,7 +177,7 @@ module Modulus
         @socket.puts "NICK #{client.nick} 0 #{Time.now.utc.to_i} #{user} #{host} #{host} #{Time.now.utc.to_i} +oS #{host} :#{client.realName}"
       }
 
-      @socket.puts "PROTOCTL ESVID NICKv2 NICKIP CLK TOKEN SJ3 VHP UMODE2 CHANMODES NOQUIT"
+      @socket.puts "PROTOCTL ESVID TOKEN SJ3 VHP UMODE2 CHANMODES NOQUIT"
       @socket.puts "ES"
       @socket.puts "AO 0 #{Time.now.utc.to_i} 0 * 0 0 0 :#{@config.getOption('Network', 'network_name')}"
 
@@ -200,9 +200,8 @@ module Modulus
       # &     nick        hopcount    timestamp   username    hostname      server                  servicestamp                                             :realname
       # NICK  <nickname>  <hopcount>              <username>  <host>        <servertoken>           <umode>                                                  <realname>
       # NICK  Kabaka      1           1291720576  kabaka      localhost     draco.vacantminded.com  *                                                        :kabaka
-      #User.new(origin.arr[])
-      puts origin.raw
-      exit
+      # 0     1           2           3           4           5             6                       7                                                        8
+      User.new(origin.arr[1], origin.arr[7], origin.arr[5], origin.arr[5], origin.arr[3])
     end
 
     def sendPong(origin)

@@ -90,11 +90,17 @@ module Modulus
       if origin.type == :nick
         # Have the protocol handler figure out how to make it a user object since
         # nobody follows 2813 just right.
-        #user = @services.link.createUser(origin)
-        #$log.debug "parser", "Added user #{user.nick}!#{user.username}@#{user.hostname} (#{user.svid} / #{user.timestamp}) after receiving NICK."
+        # TODO: Move part of this to protocol handler
+        if origin.arr.length == 4
+          #nick cahnge
+          @services.users.changeNick(origin.source, origin.arr[2], origin.arr[3])
+        else
+          user = @services.link.createUser(origin)
+          $log.debug "parser", "Added user #{user.nick}!#{user.username}@#{user.hostname} (#{user.svid} / #{user.timestamp}) after receiving NICK."
 
-        # Add the user to whatever this is.
-        #@services.users.addUser(user)
+          # Add the user to whatever this is.
+          @services.users.addUser(user)
+        end
       end
               
       if origin.type == :kill and @services.clients.isMyClient? origin.target

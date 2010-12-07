@@ -52,43 +52,34 @@ module Modulus
     def cmd_ns_list(origin)
       $log.debug "NickServ", "Got: #{origin.raw}"
 
-      if origin.argsArr.length != 2
-        @services.reply(origin, "NickServ", "Usage: LIST email password")
-      else
-        email = origin.argsArr[0]
-        password = origin.argsArr[1]
+      user = @services.users.find(origin.source)
 
-        account = Account.find_by_email(email)
-
-        if account == nil
-          @services.reply(origin, "NickServ", "#{email} is not registered.")
-
-        elsif account.password == password
-          nicks = Nick.find_all_by_account_id(account.id)
-
-          if nicks.length != 0
-            @services.reply(origin, "NickServ", "Nicks registered to #{email}:")
-
-            @services.reply(origin, "NickServ", sprintf("%30.30s  %-25.25s", "Nick", "Date Registered"))
-
-            nicks.each { |nick|
-              @services.reply(origin, "NickServ", sprintf("%30.30s  %-25.25s", nick.nick, nick.dateRegistered))
-            }
-
-            @services.reply(origin, "NickServ", "Total registered nicks: #{nicks.length}")
-          else
-            @services.reply(origin, "NickServ", "There are currently no nicks registered to #{email}.")
-          end            
-        else
-          @services.reply(origin, "NickServ", "Incorrect password.")
-        end
-
+      unless user.loggedIn?
+        @services.reply(origin, "NickServ", "You must be logged in to a services account in order to use this command.")
+        return
       end
+
+      nicks = Nick.find_all_by_account_id(Account.find_by_email(user.svid))
+
+      if nicks.length != 0
+        @services.reply(origin, "NickServ", "Nicks registered to #{user.svid}:")
+
+        @services.reply(origin, "NickServ", sprintf("%30.30s  %-25.25s", "Nick", "Date Registered"))
+
+        nicks.each { |nick|
+          @services.reply(origin, "NickServ", sprintf("%30.30s  %-25.25s", nick.nick, nick.dateRegistered))
+        }
+
+        @services.reply(origin, "NickServ", "Total nicks registered: #{nicks.length}")
+      else
+        @services.reply(origin, "NickServ", "There are currently no nicks registered to #{user.svid}.")
+      end            
     end
       
     def cmd_ns_unidentify(origin)
       $log.debug "NickServ", "Got: #{origin.raw}"
 
+      @services.users.logOut(origin.source)
       @services.link.svsmode(origin.source, "-r+d *")
       @services.reply(origin, "NickServ", "You have been logged out.")
     end
@@ -118,6 +109,7 @@ module Modulus
           else
             if account.password == password
               @services.link.svsmode(origin.source, "+rd #{account.email}")
+              @services.users.logIn(origin.source, account.email)
 
               @services.reply(origin, "NickServ", "You have been identified as the owner of #{origin.source}")
               $log.info "NickServ", "#{origin.source} has been identified as account #{account.email}."

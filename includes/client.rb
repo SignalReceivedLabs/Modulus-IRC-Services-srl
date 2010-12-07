@@ -42,6 +42,11 @@ module Modulus
       @services.link.joinChannel(@nick, channel)
     end
 
+    def removeChannel(channel)
+      @channels.delete channel
+      @services.link.partChannel(@nick, channel)
+    end
+
     def joinAllChannels
       @channels.each { |c|
         @services.link.joinChannel(@nick, c)

@@ -20,7 +20,7 @@ module Modulus
 
   class Services
 
-    attr_reader :clients, :link, :hostname, :name, :config, :events
+    attr_reader :clients, :link, :hostname, :name, :config, :events, :users
 
     def initialize(config)
       @config = config
@@ -28,6 +28,7 @@ module Modulus
       @clients = Modulus::Clients.new(self)
       @serviceModules = Modulus::ServiceModules.new(self)
       @events = Modulus::Events.new
+      @users = Modulus::Users.new
 
       @hooks = Hash.new
       @cmdHooks = Hash.new

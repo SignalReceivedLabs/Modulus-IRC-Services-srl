@@ -46,9 +46,18 @@ module Modulus
       self.updateUser(ind, user)
     end
 
-    def changeNick(ind, newNick)
+    def logOut(ind)
+      #TODO: Make sure the network supports ESVID
+      user = self.find(ind)
+      user.svid = '*'
+      user.loggedIn = false
+      self.updateUser(ind, user)
+    end
+
+    def changeNick(ind, newNick, newTimestamp)
       user = self.find(ind)
       user.nick = newNick
+      user.timestamp = newTimestamp
       self.updateUser(ind, user)
     end
 
@@ -70,12 +79,6 @@ module Modulus
       self.updateUser(ind, user)
     end
 
-    def changeTimestamp(ind, newTimestamp)
-      user = self.find(ind)
-      user.timestamp = newTimestamp
-      self.updateUser(ind, user)
-    end
-
     def changeSVID(ind, newSVID)
       user = self.find(ind)
       user.svid = newSVID
@@ -83,7 +86,7 @@ module Modulus
     end
 
     def updateUser(ind, new)
-      self.del(ind)
+      self.delete(ind)
       self.addUser(new)
     end
 
