@@ -32,6 +32,8 @@ module Modulus
       @hooks = Hash.new
       @cmdHooks = Hash.new
       @messageHooks = Hash.new
+
+      @scheduler = Rufus::Scheduler.start_new
       
       @hostname = config.getOption("Core", "services_hostname")
       @name = config.getOption("Core", "services_name")
