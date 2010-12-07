@@ -31,10 +31,10 @@ module Modulus
       @events[event] << EventCallback.new(sender, func)
     end
 
-    def event(event)
+    def event(event, *args)
       if @events.has_key? event
         $log.debug 'events', "Event fired: #{event}"
-        @events[event].each { |c| c.run }
+        @events[event].each { |c| c.run(args) }
       else
         $log.warning 'events', "Attempted to fire event with no recipients: #{event}"
       end
@@ -50,8 +50,8 @@ module Modulus
       @func = func
     end
 
-    def run
-      eval ("@obj.#{@func}")
+    def run(args)
+      eval ("@obj.#{@func}#{"(#{args})" unless args.length == 0}")
     end
   end #class EventCallback
 
