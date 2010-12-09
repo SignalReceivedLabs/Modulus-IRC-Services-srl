@@ -24,6 +24,8 @@ module Modulus
 
     def initialize(config)
       @config = config
+      $log = Modulus::Log.new(self, config)
+      $log.info "core", "#{NAME} version #{VERSION} is starting."
 
       @clients = Modulus::Clients.new(self)
       @serviceModules = Modulus::ServiceModules.new(self)
@@ -39,9 +41,20 @@ module Modulus
       @hostname = config.getOption("Core", "services_hostname")
       @name = config.getOption("Core", "services_name")
 
-      $log = Modulus::Log.new(self, config)
+      @events.register(:database_connected, self, "prepAccountTable")
 
-      $log.info "core", "#{NAME} version #{VERSION} is starting."
+      Dir["./modules/*"].each { |servDir|
+        servName = File.basename servDir
+        $log.debug "core", "Attemping to load module #{servName}."
+
+        Dir["#{servDir}/*.rb"].each { |file|
+          load(file)
+        }
+
+        eval("#{servName}.new(self)")
+      }
+
+      Modulus.startDB(self)
 
       protocol = config.getOption('Network', 'link_protocol')
 
@@ -71,17 +84,6 @@ module Modulus
 
       #link.createClient(servName, config.getOption('Network', 'services_user'), config.getOption('Network', 'services_hostname'))
 
-      Dir["./modules/*"].each { |servDir|
-        servName = File.basename servDir
-        $log.debug "core", "Attemping to load module #{servName}."
-
-        Dir["#{servDir}/*.rb"].each { |file|
-          load(file)
-        }
-
-        eval("#{servName}.new(self)")
-      }
-
       #@clients.connectAll
 
       $log.debug "core", "Connecting."
@@ -89,19 +91,23 @@ module Modulus
 
       @clients.joinLogChan
 
-      @events.register(:database_connected, self, "prepAccountTable")
-
-      Modulus.startDB(self)
-
       $log.info "core", "IRC Services has started successfully."
+
+      sleep 0.5
+      @events.event(:done_connecting)
+
       thread.join
     end
 
-    def reply(origin, replyFrom,  message)
-      @link.sendNotice(replyFrom, origin.source, message)
+    def reply(origin,  message)
+      # TODO: Privmsg if public
+      #       Notice if private or privmsg if private (config!)
+      @link.sendNotice(origin.target, origin.source, message)
     end
 
     def runHooks(origin)
+      @events.event(origin.type, origin)
+
       if @hooks.has_key? origin.type
 
       $log.debug "core", "Running all hooks of type #{origin.type}"
@@ -181,7 +187,6 @@ module Modulus
       unless Account.table_exists?
         ActiveRecord::Schema.define do
           create_table :accounts do |t|
-
             t.string :email, :null => false
             t.string :password, :null => false
             t.datetime :dateRegistered, :null => false
@@ -192,7 +197,6 @@ module Modulus
             t.text :notes
             t.boolean :noexpire, :default => false
             t.string :verified, :default => false
-
           end
         end
       end

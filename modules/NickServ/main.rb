@@ -55,24 +55,24 @@ module Modulus
       user = @services.users.find(origin.source)
 
       unless user.loggedIn?
-        @services.reply(origin, "NickServ", "You must be logged in to a services account in order to use this command.")
+        @services.reply(origin, "You must be logged in to a services account in order to use this command.")
         return
       end
 
       nicks = Nick.find_all_by_account_id(Account.find_by_email(user.svid))
 
       if nicks.length != 0
-        @services.reply(origin, "NickServ", "Nicks registered to #{user.svid}:")
+        @services.reply(origin, "Nicks registered to #{user.svid}:")
 
-        @services.reply(origin, "NickServ", sprintf("%30.30s  %-25.25s", "Nick", "Date Registered"))
+        @services.reply(origin, sprintf("%30.30s  %-25.25s", "Nick", "Date Registered"))
 
         nicks.each { |nick|
-          @services.reply(origin, "NickServ", sprintf("%30.30s  %-25.25s", nick.nick, nick.dateRegistered))
+          @services.reply(origin, sprintf("%30.30s  %-25.25s", nick.nick, nick.dateRegistered))
         }
 
-        @services.reply(origin, "NickServ", "Total nicks registered: #{nicks.length}")
+        @services.reply(origin, "Total nicks registered: #{nicks.length}")
       else
-        @services.reply(origin, "NickServ", "There are currently no nicks registered to #{user.svid}.")
+        @services.reply(origin, "There are currently no nicks registered to #{user.svid}.")
       end            
     end
       
@@ -81,21 +81,21 @@ module Modulus
 
       @services.users.logOut(origin.source)
       @services.link.svsmode(origin.source, "-r+d *")
-      @services.reply(origin, "NickServ", "You have been logged out.")
+      @services.reply(origin, "You have been logged out.")
     end
 
     def cmd_ns_identify(origin)
       $log.debug "NickServ", "Got: #{origin.raw}"
       
       if origin.argsArr.length != 1
-        @services.reply(origin, "NickServ", "Usage: IDENTIFY password")
+        @services.reply(origin, "Usage: IDENTIFY password")
       else
         password = origin.argsArr[0]
 
         nickRecord = Nick.find_by_nick(origin.source)
 
         if nickRecord == nil
-          @services.reply(origin, "NickServ", "Your nick is not registered.")
+          @services.reply(origin, "Your nick is not registered.")
         else
 
           account = Account.find(nickRecord.account_id)
@@ -104,17 +104,17 @@ module Modulus
             # This should never happen.
 
             $log.error 'NickServ', "While performing an IDENTIFY, the services account for #{origin.source} could not be found, but the nick is in the database as registered."
-            @services.reply(origin, "NickServ", "There was a problem with your request. The services account associated with this nick no longer exists. Please contact your network's staff for assistance.")
+            @services.reply(origin, "There was a problem with your request. The services account associated with this nick no longer exists. Please contact your network's staff for assistance.")
 
           else
             if account.password == password
               @services.link.svsmode(origin.source, "+rd #{account.email}")
               @services.users.logIn(origin.source, account.email)
 
-              @services.reply(origin, "NickServ", "You have been identified as the owner of #{origin.source}")
+              @services.reply(origin, "You have been identified as the owner of #{origin.source}")
               $log.info "NickServ", "#{origin.source} has been identified as account #{account.email}."
             else
-              @services.reply(origin, "NickServ", "Incorrect password.")
+              @services.reply(origin, "Incorrect password.")
               $log.info "NickServ", "Login failed for #{origin.source}."
 
               #TODO: Record this. Ban for too many failures.
@@ -132,28 +132,28 @@ module Modulus
       $log.debug "NickServ", "Got: #{origin.raw}"
       
       if origin.argsArr.length != 1
-        @services.reply(origin, "NickServ", "Usage: DROP password")
+        @services.reply(origin, "Usage: DROP password")
       else
         nickRecord = Nick.find_by_nick(origin.source)
 
 
           if nickRecord == nil
-            @services.reply(origin, "NickServ", "Your nick is not currently registered.")
+            @services.reply(origin, "Your nick is not currently registered.")
           else
             account = Account.find(nickRecord.account_id)
             if account.password == origin.argsArr[0]
               nickRecord.destroy
 
-              @services.reply(origin, "NickServ", "Nick registration dropped.")
+              @services.reply(origin, "Nick registration dropped.")
               $log.info "NickServ", "#{origin.source} has dropped their nick registration."
 
               nickRecords = Nick.find_all_by_account_id(account.id)
 
               if nickRecords.length == 0
-                @services.reply(origin, "NickServ", "You no longer have any nicks registered. Your services account #{account.email} will remain intact for use with other modules until it expires (if expiration is enabled here).")
+                @services.reply(origin, "You no longer have any nicks registered. Your services account #{account.email} will remain intact for use with other modules until it expires (if expiration is enabled here).")
               end
             else
-              @services.reply(origin, "NickServ", "Incorrect password.")
+              @services.reply(origin, "Incorrect password.")
             end
           end
       end
@@ -163,13 +163,13 @@ module Modulus
       $log.debug "NickServ", "Got: #{origin.raw}"
 
       if origin.argsArr.length != 2
-        @services.reply(origin, "NickServ", "Usage: REGISTER password e-mail")
+        @services.reply(origin, "Usage: REGISTER password e-mail")
       else
         password = origin.argsArr[0]
         email = origin.argsArr[1]
         
         if Nick.find_by_nick(origin.source)
-          @services.reply(origin, "NickServ", "The nick #{origin.source} is already registered.")
+          @services.reply(origin, "The nick #{origin.source} is already registered.")
         else
           acc = Account.find_by_email(email)
           if acc == nil
@@ -181,9 +181,9 @@ module Modulus
               :dateRegistered => DateTime.now,
               :verified => true)
 
-            @services.reply(origin, "NickServ", "I have created a new account for #{email}. If you register additional nicks in the future, use this e-mail address and the same password to keep nicks attached to this account.")
+            @services.reply(origin, "I have created a new account for #{email}. If you register additional nicks in the future, use this e-mail address and the same password to keep nicks attached to this account.")
           elsif acc.password != password
-            @services.reply(origin, "NickServ", "Incorrect password for the existing account with that e-mail address.")
+            @services.reply(origin, "Incorrect password for the existing account with that e-mail address.")
             $log.info "NickServ", "Login failed: #{origin.source} tried to register a new nick for account #{acc.email} but used the wrong password."
             return
           end
@@ -194,7 +194,10 @@ module Modulus
             :nick => origin.source,
             :dateRegistered => DateTime.now)
 
-          @services.reply(origin, "NickServ", "You have registered #{origin.source} to #{origin.argsArr[1]}.")
+          @services.link.svsmode(origin.source, "+rd #{email}")
+          @services.users.logIn(origin.source, email)
+
+          @services.reply(origin, "You have registered #{origin.source} to #{origin.argsArr[1]}.")
           $log.info "NickServ", "Nick #{origin.source} registered to #{email}."
         end
       end

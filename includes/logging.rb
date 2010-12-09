@@ -24,7 +24,7 @@ module Modulus
 
     require 'logger'
 
-    DISABLED = -1
+    DISABLED = 10
     DEBUG = 0
     INFO = 1
     WARN = 2
@@ -60,7 +60,7 @@ module Modulus
           return DEBUG
         when "info"
           return INFO
-        when "warn"
+        when "warning"
           return WARN
         when "error"
           return ERROR
@@ -76,7 +76,7 @@ module Modulus
           @logger.sev_threshold = Logger::DEBUG
         when "info"
           @logger.sev_threshold = Logger::INFO
-        when "warn"
+        when "warning"
           @logger.sev_threshold = Logger::WARN
         when "error"
           @logger.sev_threshold = Logger::ERROR
@@ -104,7 +104,7 @@ module Modulus
       self.logToChannel(INFO, "INFO [#{section}] #{str}")
     end
 
-    def warn(section, str)
+    def warning(section, str)
       @logger.warn(section) { str }
       self.logToChannel(WARN, "WARNING [#{section}] #{str}")
     end

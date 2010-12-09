@@ -194,13 +194,30 @@ module Modulus
       end
     end
 
+    def parse(origin)
+      case origin.type
+        when :join
+          arr = origin.message.split(" ")
+          arr[2].split(",").each { |c|
+            @parser.handleJoin(OriginInfo.new(origin.raw, origin.source, origin.cmd, c, :join))
+          }
+        when :privmsg
+          @parser.handlePrivmsg(origin)
+        when :notice
+          @parser.handlePrivmsg(origin)
+        when :nick
+          @parser.handleNick(origin)
+        else
+          @parser.handleOther(origin)
+      end
+    end
+
     def createUser(origin)
       #TODO: Are we using NICKv2?
-      # &     nick        hopcount    timestamp   username    hostname      server                  servicestamp +usermodes virtualhost cloakhost nickipaddr :realname
-      # &     nick        hopcount    timestamp   username    hostname      server                  servicestamp                                             :realname
-      # NICK  <nickname>  <hopcount>              <username>  <host>        <servertoken>           <umode>                                                  <realname>
-      # NICK  Kabaka      1           1291720576  kabaka      localhost     draco.vacantminded.com  *                                                        :kabaka
-      # 0     1           2           3           4           5             6                       7                                                        8
+      # (We never do, despite asking for it. Annoying!)
+      # &     nick   hopcount timestamp   username hostname   server                  servicestamp  :realname
+      # NICK  Kabaka 1        1291720576  kabaka   localhost  draco.vacantminded.com  *             :kabaka
+      # 0     1      2        3           4        5          6                       7             8
       User.new(origin.arr[1], origin.arr[7], origin.arr[5], origin.arr[5], origin.arr[3])
     end
 
@@ -225,7 +242,7 @@ module Modulus
     def createClient(nick, realName)
       #@sendq << ":#{nick} SVSKILL #{nick} :Collision with services."
 
-      host = @configyy.getOption('Network', 'services_hostname')
+      host = @config.getOption('Network', 'services_hostname')
       user = @config.getOption('Network', 'services_user')
 
       @sendq << "NICK #{nick} 1 #{Time.now.utc.to_i} #{user} #{host} #{host} * +oS * :#{realName}"
@@ -262,7 +279,7 @@ module Modulus
       @sendq << ":#{nick} H #{channel} #{target} :#{reason}"
     end
 
-    def channelMode(source, target, modeChanges, modeParams)
+    def channelMode(source, target, modeChanges, modeParams="")
       @sendq << ":#{source} G #{target} #{modeChanges} #{modeParams}"
     end
 

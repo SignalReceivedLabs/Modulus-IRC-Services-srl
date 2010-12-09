@@ -36,7 +36,7 @@ module Modulus
         $log.debug 'events', "Event fired: #{event}"
         @events[event].each { |c| c.run(args) }
       else
-        $log.warning 'events', "Attempted to fire event with no recipients: #{event}"
+        $log.debug 'events', "Attempted to fire event with no recipients: #{event}"
       end
     end
 
@@ -51,7 +51,8 @@ module Modulus
     end
 
     def run(args)
-      eval ("@obj.#{@func}#{"(#{args})" unless args.length == 0}")
+      $log.debug 'events', "Running event for #{obj}.#{func}"
+      eval ("@obj.#{@func}#{"(args)" unless args.length == 0}")
     end
   end #class EventCallback
 

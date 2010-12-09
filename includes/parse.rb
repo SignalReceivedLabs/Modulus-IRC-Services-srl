@@ -73,43 +73,88 @@ module Modulus
       end
 
       puts "#{origin}"
-      self.work(origin)
+      @services.link.parse(origin)
     end
 
     def work(origin)
+      $log.debug 'parser', "Doing work on #{origin}"
       @services.runHooks(origin)
+    end
 
-      if origin.message.length != 0
+    def handleNick(origin)
+      # Have the protocol handler figure out how to make it a user object since
+      # nobody follows 2813 just right.
+      # TODO: Move part of this to protocol handler
+      if origin.arr.length == 4
+        #nick cahnge
+        @services.users.changeNick(origin.source, origin.arr[2], origin.arr[3])
+      else
+        user = @services.link.createUser(origin)
+        $log.debug "parser", "Added user #{user.nick}!#{user.username}@#{user.hostname} (#{user.svid} / #{user.timestamp}) after receiving NICK."
 
-        if origin.type == :privmsg or origin.type == :notice
-          # Could be a command!
-          @services.runCmds(origin)
-        end
+        # Add the user to whatever this is.
+        @services.users.addUser(user)
       end
 
-      if origin.type == :nick
-        # Have the protocol handler figure out how to make it a user object since
-        # nobody follows 2813 just right.
-        # TODO: Move part of this to protocol handler
-        if origin.arr.length == 4
-          #nick cahnge
-          @services.users.changeNick(origin.source, origin.arr[2], origin.arr[3])
-        else
-          user = @services.link.createUser(origin)
-          $log.debug "parser", "Added user #{user.nick}!#{user.username}@#{user.hostname} (#{user.svid} / #{user.timestamp}) after receiving NICK."
+      self.work(origin)
+    end
 
-          # Add the user to whatever this is.
-          @services.users.addUser(user)
-        end
-      end
-              
-      if origin.type == :kill and @services.clients.isMyClient? origin.target
-        #TODO: Make this work for all situations.
-
-        #@services.link.sendKill(@services.hostname, origin.target, "Nick collision with services.")
-        #@services.link.destroyClient(origin.target)
+    def handleKill(origin)
+      if @services.clients.isMyClient? origin.target
         @services.clients.connect origin.target
+      else
+        @services.users.delete origin.target
       end
+
+      self.work(origin)
+    end
+
+    def handleKick(origin)
+      self.handleOther origin
+    end
+    
+    def handlePrivmsg(origin)
+      @services.runCmds(origin)
+      self.handleOther origin
+    end
+
+    def handleNotice(origin)
+      @services.runCmds(origin)
+      self.handleOther origin
+    end
+
+    def handleQuit(origin)
+      @services.users.delete origin.target
+      self.work(origin)
+    end
+
+    def handleJoin(origin)
+      $log.debug "parser", "Handling join for #{origin.source} -> #{origin.message}"
+      self.handleOther origin
+    end
+
+    def handlePart(origin)
+      self.handleOther origin
+
+    end
+
+    def handleMode(origin)
+      self.handleOther origin
+
+    end
+
+    def handleServer(origin)
+      self.handleOther origin
+
+    end
+
+    def handleServerQuit(origin)
+      self.handleOther origin
+
+    end
+
+    def handleOther(origin)
+      self.work(origin)
     end
 
   end #class 
