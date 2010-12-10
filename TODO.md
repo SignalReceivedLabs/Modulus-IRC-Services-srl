@@ -2,6 +2,7 @@
 
 ## Core
 
+* Make everything event-driven
 * Protocol Interoperability
 * Localization Support
 * On-Protocol Help
