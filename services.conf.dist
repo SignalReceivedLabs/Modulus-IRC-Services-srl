@@ -324,12 +324,10 @@ oper_approval = yes
 [BanServ]
 
 # If set, one or more DNSBL services will be checked on all connecting clients.
-# Separate by spaces.
-# May be any of:
-# disabled
-# dronebl - http://www.dronebl.org/
-# Default: disabled
-use_dnsbl = disabled
+# Use the host name of the DNSBL itself. Separate by spaces.
+# CAUTION: Including too many blacklists can have a large impact on performance.
+# No default.
+use_dnsbl = 
 
 # If a client is banned from the network due to a DNSBL match, this reason will
 # be used. %w is replaced by a link to the matched DNSBL's website explaining
