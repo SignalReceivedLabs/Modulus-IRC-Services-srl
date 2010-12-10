@@ -27,6 +27,16 @@ module Modulus
       @config = config
       @sendq = Queue.new
 
+      @channelPrefixes = [ "#" ]
+
+      @userModePrefixes = {
+        "~" => :owner,
+        "&" => :protected,
+        "@" => :operator,
+        "%" => :halfop,
+        "+" => :voice
+      }
+
       @cmdList = {
 
         # Server Commands
@@ -62,6 +72,10 @@ module Modulus
         "KILL" => :kill,
         "SETHOST" => :sethost,
         "SWHOIS" => :swhois,
+        "AA" => :sethost,
+        "AL" => :chghost,
+        "CHGHOST" => :chghost,
+
 
         "#" => :whois,
         "WHOIS" => :whois,
@@ -220,7 +234,14 @@ module Modulus
       # &     nick   hopcount timestamp   username hostname   server                  servicestamp  :realname
       # NICK  Kabaka 1        1291720576  kabaka   localhost  draco.vacantminded.com  *             :kabaka
       # 0     1      2        3           4        5          6                       7             8
-      User.new(origin.arr[1], origin.arr[7], origin.arr[5], origin.arr[5], origin.arr[3])
+      User.new(@services, origin.arr[1], origin.arr[7], origin.arr[5], origin.arr[5], origin.arr[3])
+    end
+
+    def isChannel?(str)
+      @channelPrefixes.each { |prefix|
+        return true if str.start_with? prefix
+      }
+      return false
     end
 
     def sendPong(origin)
@@ -256,6 +277,15 @@ module Modulus
 
     def destroyClient(nick, reason="")
       @sendq << ":#{nick} QUIT :#{reason}"
+    end
+
+    def changeHostname(target, source, host)
+      @sendq << ":#{source} CHGHOST #{target} #{host}"
+    end
+
+    def removeHostname(target, source)
+      @sendq << ":#{source} SVSMODE #{target} -xt"
+      @sendq << ":#{source} SVSMODE #{target} +x"
     end
 
     def svsmode(target, mode)

@@ -20,20 +20,52 @@ module Modulus
 
   class User
 
-    attr_accessor :nick, :svid, :username, :hostname, :channels, :timestamp, :modes, :loggedIn
+    attr_accessor :nick, :svid, :username, :hostname, :channels, :timestamp, :modes, :loggedIn, :vhost, :modes
 
-    def initialize(nick, svid, username, hostname, timestamp)
+    def initialize(services, nick, svid, username, hostname, timestamp)
+      @services = services
       @nick = nick
       @svid = svid
       @username = username
       @hostname = hostname
       @timestamp = timestamp
       @modes = Array.new
-      @loggedIn = (svid != '*')
+      @vhost = ""
+      if svid != '*'
+        self.logIn(svid)
+      else
+        @loggedIn = false
+      end
     end
 
     def loggedIn?
       @loggedIn
+    end
+
+    def modes(modes)
+      plus = true
+
+      modes.each_char { |c|
+        if c == "+"
+          plus = true
+        elsif c == "-"
+          plus = false
+        else
+          if plus
+            @modes << c
+          else
+            @modes.delete(c) if @modes.include? c
+          end
+        end
+      }
+      $log.debug 'user', "Updated modes for #{nick}: #{@modes.join(", ")}"
+    end
+
+    def logIn(username)
+      $log.debug 'user', "User at nick #{@nick} has logged in as #{username}"
+      @svid = username
+      @loggedIn = true
+      @services.events.event(:logged_in, self)
     end
 
   end #class User

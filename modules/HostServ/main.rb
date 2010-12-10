@@ -31,6 +31,8 @@ names to hide or replace their normal host name.")
 
       services.events.register(:database_connected, self, "dbConnected")
       services.events.register(:connect, self, "on_connect")
+      services.events.register(:logged_in, self, "on_log_in")
+
 
       services.clients.addClient(@services, "HostServ", "Vanity Host Name Assignment Service")
 
@@ -89,7 +91,37 @@ able to activate or deactivate the host name using HostServ commands.")
     end
 
     def on_connect(origin)
+  
+    end
 
+    def on_log_in(user)
+      user = user[0]
+      default = @services.config.getOption("HostServ", "default_vhost")
+
+      return if default == nil
+      return if default.length == 0
+
+      # TODO: Make this less dumb.
+      default.gsub!("%u", user.svid)
+
+      self.activate(user.nick, default)
+    end
+
+    def activate(nick, host)
+      user = @services.users.find(nick)
+      return if user == nil
+
+      if user.vhost != host and user.hostname != host
+        @services.link.changeHostname(nick, "HostServ", host)
+      end
+    end
+
+    def deactivate(nick)
+      user = @services.users.find(nick)
+
+      return if user == nil
+
+      @services.link.removeHostname(nick, "HostServ")
     end
 
     def cmd_hs_set(origin)
@@ -115,6 +147,7 @@ able to activate or deactivate the host name using HostServ commands.")
     def cmd_hs_off(origin)
       $log.debug "HostServ", "Got: #{origin.raw}"
 
+      self.deactivate(origin.source)
     end
  
     def join(chan)

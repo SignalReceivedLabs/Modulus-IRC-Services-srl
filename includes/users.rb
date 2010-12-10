@@ -20,9 +20,13 @@ module Modulus
 
   class Users
 
-    def initialize
+    def initialize(services)
+      @services = services
       @nicks = Hash.new # Nick => ESVID
       @users = Hash.new # ESVID => User Object
+
+      @services.events.register(:sethost, self, "on_set_host")
+      @services.events.register(:mode, self, "on_mode")
     end
 
     def addUser(user)
@@ -38,12 +42,29 @@ module Modulus
       @users[user.svid] = user
     end
 
+    def on_set_host(origin)
+      origin = origin[0]
+      user = self.find(origin.source)
+      user.vhost = origin.target
+    end
+
+    def on_mode(origin)
+      origin = origin[0]
+      return if @services.link.isChannel? origin.target
+
+      $log.debug 'users', "Doing modes for #{origin.target}"
+
+      user = self.find(origin.target)
+      return if user == nil
+
+      user.modes(origin.message)
+    end
+
     def logIn(ind, svid)
       #TODO: Make sure the network supports ESVID
       user = self.find(ind)
       user.svid = svid
       user.loggedIn = true
-      self.updateUser(ind, user)
     end
 
     def logOut(ind)
@@ -51,43 +72,32 @@ module Modulus
       user = self.find(ind)
       user.svid = '*'
       user.loggedIn = false
-      self.updateUser(ind, user)
     end
 
     def changeNick(ind, newNick, newTimestamp)
       user = self.find(ind)
       user.nick = newNick
       user.timestamp = newTimestamp
-      self.updateUser(ind, user)
     end
 
     def changeUsername(ind, newUser)
       user = self.find(ind)
       user.username = newUser
-      self.updateUser(ind, user)
     end
 
     def changeHostname(ind, newHost)
       user = self.find(ind)
       user.hostname = newHost
-      self.updateUser(ind, user)
     end
 
     def changeModes(ind, newModes)
       user = self.find(ind)
       user.modes = newModes
-      self.updateUser(ind, user)
     end
 
     def changeSVID(ind, newSVID)
       user = self.find(ind)
       user.svid = newSVID
-      self.updateUser(ind, user)
-    end
-
-    def updateUser(ind, new)
-      self.delete(ind)
-      self.addUser(new)
     end
 
     def find(ind)

@@ -30,7 +30,7 @@ module Modulus
       @clients = Modulus::Clients.new(self)
       @serviceModules = Modulus::ServiceModules.new(self)
       @events = Modulus::Events.new
-      @users = Modulus::Users.new
+      @users = Modulus::Users.new(self)
 
       @hooks = Hash.new
       @cmdHooks = Hash.new
@@ -160,7 +160,6 @@ module Modulus
       #@cmdHooks[receiver][cmdStr] << hook
       @cmdHooks[receiver][cmdStr] = hook
     end
-
 
     def addMessageHook(modClass, funcName, hookType, receiver)
       @messageHooks[receiver] = Hash.new unless @messageHooks.has_key? receiver

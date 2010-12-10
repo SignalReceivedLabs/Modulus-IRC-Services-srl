@@ -147,8 +147,7 @@ contact your network's staff.")
 
           else
             if account.password == password
-              @services.link.svsmode(origin.source, "+rd #{account.username}")
-              @services.users.logIn(origin.source, account.username)
+              self.logIn(account.username, origin.source)
 
               @services.reply(origin, "You have been identified as the owner of #{origin.source}")
               $log.info "NickServ", "#{origin.source} has been identified as account #{account.username}."
@@ -250,13 +249,22 @@ contact your network's staff.")
             :nick => origin.source,
             :dateRegistered => DateTime.now)
 
-          @services.link.svsmode(origin.source, "+rd #{username}")
-          @services.users.logIn(origin.source, username)
-
+          self.logIn(username, origin.source)
           @services.reply(origin, "You have registered #{origin.source} to #{username} (#{email}).")
           $log.info "NickServ", "Nick #{origin.source} registered to #{username}."
         end
       end
+    end
+
+    def logIn(username, nick)
+      user = @services.users.find(nick)
+
+      return if user == nil
+      
+      user.logIn
+
+      @services.link.svsmode(origin.source, "+rd #{username}")
+      @services.users.logIn(origin.source, username)
     end
 
     def dbConnected
