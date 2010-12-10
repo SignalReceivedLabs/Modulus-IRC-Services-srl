@@ -99,7 +99,7 @@ contact your network's staff.")
         return
       end
 
-      nicks = Nick.find_all_by_account_id(Account.find_by_email(user.svid))
+      nicks = Nick.find_all_by_account_id(Account.find_by_username(user.svid))
 
       if nicks.length != 0
         @services.reply(origin, "Nicks registered to #{user.svid}:")
@@ -148,11 +148,11 @@ contact your network's staff.")
 
           else
             if account.password == password
-              @services.link.svsmode(origin.source, "+rd #{account.email}")
-              @services.users.logIn(origin.source, account.email)
+              @services.link.svsmode(origin.source, "+rd #{account.username}")
+              @services.users.logIn(origin.source, account.username)
 
               @services.reply(origin, "You have been identified as the owner of #{origin.source}")
-              $log.info "NickServ", "#{origin.source} has been identified as account #{account.email}."
+              $log.info "NickServ", "#{origin.source} has been identified as account #{account.username}."
             else
               @services.reply(origin, "Incorrect password.")
               $log.info "NickServ", "Login failed for #{origin.source}."
@@ -190,7 +190,7 @@ contact your network's staff.")
               nickRecords = Nick.find_all_by_account_id(account.id)
 
               if nickRecords.length == 0
-                @services.reply(origin, "You no longer have any nicks registered. Your services account #{account.email} will remain intact for use with other modules until it expires (if expiration is enabled here).")
+                @services.reply(origin, "You no longer have any nicks registered. Your services account #{account.username} will remain intact for use with other modules until it expires (if expiration is enabled here).")
               end
             else
               @services.reply(origin, "Incorrect password.")
@@ -202,29 +202,46 @@ contact your network's staff.")
     def cmd_ns_register(origin)
       $log.debug "NickServ", "Got: #{origin.raw}"
 
-      if origin.argsArr.length != 2
-        @services.reply(origin, "Usage: REGISTER password e-mail")
+      if origin.argsArr.length != 2 and origin.argsArr.length != 3
+        @services.reply(origin, "Usage: REGISTER password e-mail [username]")
       else
         password = origin.argsArr[0]
         email = origin.argsArr[1]
         
+        if origin.argsArr.length == 3
+          username = origin.argsArr[2]
+        else
+          username = origin.source
+        end
+
         if Nick.find_by_nick(origin.source)
           @services.reply(origin, "The nick #{origin.source} is already registered.")
         else
-          acc = Account.find_by_email(email)
+          emailAcc = Account.find_by_email(email)
+
+          if emailAcc != nil
+            if username != emailAcc.username
+              @services.reply(origin, "The e-mail address #{email} has already been used by a registered user.")
+              return 
+            end
+          end
+
+          acc = Account.find_by_username(username)
+
           if acc == nil
-            $log.debug "NickServ", "There is no account for #{email} but a user is trying to register a nick with it. Creating account with given password."
+            $log.debug "NickServ", "There is no account for #{username} but a user is trying to register a nick with it. Creating account with given password."
 
             acc = Account.create(
+              :username => username,
               :email => email,
               :password => password,
               :dateRegistered => DateTime.now,
               :verified => true)
 
-            @services.reply(origin, "I have created a new account for #{email}. If you register additional nicks in the future, use this e-mail address and the same password to keep nicks attached to this account.")
+            @services.reply(origin, "I have created a new account for #{username} (#{email}). If you register additional nicks in the future, use this e-mail address and username and the same password to keep nicks attached to this account. Otherwise, managing your services use will becoming confusing for both you and the network staff.")
           elsif acc.password != password
             @services.reply(origin, "Incorrect password for the existing account with that e-mail address.")
-            $log.info "NickServ", "Login failed: #{origin.source} tried to register a new nick for account #{acc.email} but used the wrong password."
+            $log.info "NickServ", "Login failed: #{origin.source} tried to register a new nick for account #{acc.username} but used the wrong password."
             return
           end
 
@@ -234,11 +251,11 @@ contact your network's staff.")
             :nick => origin.source,
             :dateRegistered => DateTime.now)
 
-          @services.link.svsmode(origin.source, "+rd #{email}")
-          @services.users.logIn(origin.source, email)
+          @services.link.svsmode(origin.source, "+rd #{username}")
+          @services.users.logIn(origin.source, username)
 
-          @services.reply(origin, "You have registered #{origin.source} to #{origin.argsArr[1]}.")
-          $log.info "NickServ", "Nick #{origin.source} registered to #{email}."
+          @services.reply(origin, "You have registered #{origin.source} to #{username} (#{email}).")
+          $log.info "NickServ", "Nick #{origin.source} registered to #{username}."
         end
       end
     end

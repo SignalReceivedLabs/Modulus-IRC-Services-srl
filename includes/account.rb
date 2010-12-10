@@ -19,9 +19,9 @@
 module Modulus
 
   class Account < ActiveRecord::Base
-    def authenticate(email, password)
-      #TODO: Encrypt password!
-      where("email = ? AND password = ?", email, password).first
+    def authenticate(username, password)
+      #TODO: Encrypt password! And also do this less stupidly.
+      where("username = ? AND password = ?", username, password).first
     end
   end #class Account
 end #module Modulus

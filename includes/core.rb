@@ -190,6 +190,7 @@ module Modulus
       unless Account.table_exists?
         ActiveRecord::Schema.define do
           create_table :accounts do |t|
+            t.string :username, :null => false
             t.string :email, :null => false
             t.string :password, :null => false
             t.datetime :dateRegistered, :null => false

@@ -5,6 +5,7 @@
 * Protocol Interoperability
 * Localization Support
 * On-Protocol Help
+* Encrypted Passwords
 
 ### Protocol Support
 

@@ -106,7 +106,7 @@ while logged in to your account.")
         return
       end
 
-      channels = Channel.find_all_by_owner_id(Account.find_by_email(user.svid))
+      channels = Channel.find_all_by_owner_id(Account.find_by_username(user.svid))
 
       if channels.length != 0
       
@@ -140,7 +140,7 @@ while logged in to your account.")
           @services.reply(origin, "The channel #{origin.args} is already registered.")
         else
 
-          account = Account.find_by_email(user.svid)
+          account = Account.find_by_username(user.svid)
 
           if account == nil
             @services.reply(origin, "You must be logged in to a services account in order to register a channel.")
@@ -177,7 +177,7 @@ while logged in to your account.")
       @services.reply(origin, "Not yet implemented.")
       return
 
-      channel = Channel.find_by_owner_id(Account.find_by_email(user.svid))
+      channel = Channel.find_by_owner_id(Account.find_by_username(user.svid))
 
       if channel == nil
         @services.reply(origin, "That channel is not registered.")
@@ -226,7 +226,7 @@ while logged in to your account.")
         return
       end
 
-      account = Account.find_by_email(user.svid)
+      account = Account.find_by_username(user.svid)
 
       if account == nil
         @services.reply(origin, "The user must be logged in to a services account.")
@@ -338,7 +338,7 @@ while logged in to your account.")
       c = Channel.find_by_name(chan)
       return nil if c == nil
       
-      a = Account.find_by_email(user.svid)
+      a = Account.find_by_username(user.svid)
       return nil if a == nil
       
       ca = ChannelUsers.find_by_channel_id_and_account_id(c.id, a.id)
