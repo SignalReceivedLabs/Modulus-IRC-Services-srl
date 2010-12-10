@@ -6,6 +6,7 @@
 * Localization Support
 * On-Protocol Help
 * Encrypted Passwords
+* Command and message hooks should use Events
 
 ### Protocol Support
 
