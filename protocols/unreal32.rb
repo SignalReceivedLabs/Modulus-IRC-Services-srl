@@ -207,6 +207,8 @@ module Modulus
           @parser.handlePrivmsg(origin)
         when :nick
           @parser.handleNick(origin)
+        when :sjoin
+          @parser.handleJoin(OriginInfo.new(origin.raw, origin.message, origin.cmd, origin.arr[3], :join))
         else
           @parser.handleOther(origin)
       end

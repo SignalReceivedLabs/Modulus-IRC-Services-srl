@@ -18,22 +18,13 @@
 
 module Modulus
 
-  class ModuleManager
+  class Service
+     attr_reader :modClass, :description
 
-    def initialize
-      @modules = Hash.new
-    end
-
-    def addModule(mod)
-      # TODO: make an object for this so we have a place for the description.
-      if @modules.has_key? mod.name
-        $log.warning 'module-manager', "Attempted to add module #{mod.name} twice. Overwriting."
-
-        @modules[mod.name] = mod
-      end
-    end
-
-
+     def initialize(modClass, desc)
+       @modClass = modClass
+       @description = desc
+     end
 
   end #class 
 

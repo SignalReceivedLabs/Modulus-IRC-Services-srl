@@ -26,8 +26,8 @@ module Modulus
       services.addService("NickServ", self,
                          "Nick Registration Services
                          
-                         NickServ allows users to register and protect their
-                         nicks.")
+NickServ allows users to register and protect their
+nicks.")
 
       services.events.register(:database_connected, self, "dbConnected")
 

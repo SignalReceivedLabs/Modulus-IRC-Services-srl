@@ -26,8 +26,8 @@ module Modulus
       services.addService("ChanServ", self,
                          "Channel Registration Services
                          
-                         ChanServ allows users to register channels, maintain
-                         channel settings, and maintain channel operator lists.")
+ChanServ allows users to register channels, maintain
+channel settings, and maintain channel operator lists.")
 
       services.events.register(:database_connected, self, "dbConnected")
       services.events.register(:done_connecting, self, "joinRegistered")
@@ -315,28 +315,28 @@ module Modulus
     end
 
     def parseAccess(origin, access)
-      modeChange = ""
+      modeChange = "+"
       modeArgs = ""
       access.split(" ").each { |caItem|
         case caItem
           when "VOC"
             modeChange += "v"
-            modeArgs += origin.source
+            modeArgs += origin.source + " "
           when "HOP"
             modeChange += "h"
-            modeArgs += origin.source
+            modeArgs += origin.source + " "
           when "OPS"
             modeChange += "o"
-            modeArgs += origin.source
+            modeArgs += origin.source + " "
           when "PRT"
             modeChange += "a"
-            modeArgs += origin.source
+            modeArgs += origin.source + " "
           when "OWN"
             modeChange += "q"
-            modeArgs += origin.source
+            modeArgs += origin.source + " "
           when "BAN"
             modeChange += "b"
-            modeArgs += origin.source
+            modeArgs += origin.source + " "
         end
       }
       return [modeChange, modeArgs]

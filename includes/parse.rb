@@ -43,7 +43,7 @@ module Modulus
         cmdName = @cmdList[cmd]
 
         if cmdName == nil
-          $log.warn 'parse', "Received unknown message type #{cmd} from server."
+          $log.warning 'parse', "Received unknown message type #{cmd} from server."
           puts "--> #{origin} sent unknown cmd #{cmd} (#{line})"
           return
         else

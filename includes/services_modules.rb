@@ -20,19 +20,21 @@ module Modulus
 
   class ServiceModules
 
+    attr_reader :modules
+
     def initialize(services)
       @services = services
 
-      @serviceModules = Hash.new
+      @modules = Hash.new
     end
 
-    def addService(name, mainClass, description)
+    def addService(name, modClass, description)
       #TODO: do something with description... module class?
-      @serviceModules[name] = mainClass
+      @modules[name] = Service.new(modClass, description)
     end
 
     def getServiceModulesNames
-      @serviceModules.keys
+      @modules.keys
     end
 
   end #class 

@@ -35,7 +35,7 @@ module Modulus
 
       triggers.each { |trigger|
         if @commands[trigger].has_key? command.commandText
-          $log.warn 'module', "Command #{command.commandText} registered twice. Overwriting."
+          $log.warning 'module', "Command #{command.commandText} registered twice. Overwriting."
         end
 
         @comamands[trigger][command.commandText] = command

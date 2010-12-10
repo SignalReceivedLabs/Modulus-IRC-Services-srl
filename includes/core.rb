@@ -42,6 +42,8 @@ module Modulus
       @name = config.getOption("Core", "services_name")
 
       @events.register(:database_connected, self, "prepAccountTable")
+      @events.register(:privmsg, self, "doHelp")
+      @events.register(:notice, self, "doHelp")
 
       Dir["./modules/*"].each { |servDir|
         servName = File.basename servDir
@@ -102,7 +104,9 @@ module Modulus
     def reply(origin,  message)
       # TODO: Privmsg if public
       #       Notice if private or privmsg if private (config!)
-      @link.sendNotice(origin.target, origin.source, message)
+      message.split("\n").each { |msg|
+        @link.sendNotice(origin.target, origin.source, msg)
+      }
     end
 
     def runHooks(origin)
@@ -135,9 +139,7 @@ module Modulus
 
           $log.debug "core", "Running all command hooks for #{cmdOrigin.cmd}"
 
-          @cmdHooks[cmdOrigin.target][cmdOrigin.cmd].each { |hook|
-            hook.run(cmdOrigin)
-          }
+          @cmdHooks[cmdOrigin.target][cmdOrigin.cmd].run(cmdOrigin)
         end
       end
     end
@@ -149,13 +151,14 @@ module Modulus
     def addCmd(modClass, receiver, cmdStr, funcName, shortHelp, longHelp="")
       cmdStr.upcase!
       @cmdHooks[receiver] = Hash.new unless @cmdHooks.has_key? receiver
-      @cmdHooks[receiver][cmdStr] = Array.new unless @cmdHooks[receiver].has_key? cmdStr
+      #@cmdHooks[receiver][cmdStr] = Array.new unless @cmdHooks[receiver].has_key? cmdStr
 
       $log.debug "core", "Adding command hook: #{cmdStr} for #{modClass.class}"
 
       hook = Command.new(self, modClass, funcName, cmdStr, shortHelp, longHelp)
 
-      @cmdHooks[receiver][cmdStr] << hook
+      #@cmdHooks[receiver][cmdStr] << hook
+      @cmdHooks[receiver][cmdStr] = hook
     end
 
 
