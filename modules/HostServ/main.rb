@@ -142,16 +142,14 @@ able to activate or deactivate the host name using HostServ commands.")
     def cmd_hs_on(origin)
       $log.debug "HostServ", "Got: #{origin.raw}"
 
+      
     end
 
     def cmd_hs_off(origin)
       $log.debug "HostServ", "Got: #{origin.raw}"
 
       self.deactivate(origin.source)
-    end
- 
-    def join(chan)
-        @services.clients.clients["HostServ"].addChannel(chan)
+      @services.reply(origin, "Your host mask has been deactivated.")
     end
 
     def dbConnected
