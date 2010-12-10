@@ -302,6 +302,15 @@ max_length = 400
 # Default: *com *net *org *edu *gov *co.cc
 restricted_hostnames = *com *net *org *edu *gov *co.cc
 
+# If set, users will be assigned a virtual host name when they log in. This
+# name can contain any of the follow items which will be substituted when
+# the vhost is created.
+#
+# %u - account user name
+#
+# No default.
+default_vhost = 
+ 
 # If set, HostServ will join this channel and allow users to instantly gain
 # a vhost.
 # No default.
