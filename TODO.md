@@ -65,6 +65,7 @@
 * Unforbid
 * Mode
 * Invite
+* Store grants in boolean columns rather than the dumb string
 
 ### OperServ
 
