@@ -134,6 +134,8 @@ module Modulus
     end
 
     def runCmds(cmdOrigin)
+      return if @link.isChannel? cmdOrigin.target
+
       if @cmdHooks.has_key? cmdOrigin.target
         if @cmdHooks[cmdOrigin.target].has_key? cmdOrigin.cmd
 
