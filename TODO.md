@@ -4,6 +4,7 @@
 
 * Protocol Interoperability
 * Localization Support
+* On-Protocol Help
 
 ### Protocol Support
 
