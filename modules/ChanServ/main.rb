@@ -36,16 +36,50 @@ channel settings, and maintain channel operator lists.")
       services.clients.addClient(@services, "ChanServ", "Channel Registration Service")
 
       services.addCmd(self, "ChanServ", "GRANT", "cmd_cs_grant",
-                     "Grant user privileges for the specified channel.")
+                     "Grant user privileges for the specified channel.",
+                     "Usage: GRANT channel nick permissions
+ 
+To use this command, you must have appropriate channel permissions.
+Additionally, the nick specified must be on-line and
+logged in to a services account.
+ 
+Supported permissions include:
+ 
+VOICE - User gains or may acquire voice. (+v)
+HALFOP - User gains or may acquire half-op status. (+h)
+OP - User gains or may acquire channel operator status. (+o)
+PROTECT - User gains or may acquire protected channel status. (+a)
+OWNER - User gains or may acquire channel owner status. (+q)
+        User may also perform any channel administration tasks.")
 
       services.addCmd(self, "ChanServ", "REGISTER", "cmd_cs_register",
-                     "Register the specified channel.")
+                     "Register the specified channel.",
+                     "Usage: REGISTER channel password
+ 
+ChanServ will automatically join all registered channels.
+Registered channels get access to ChanServ's interactive features,
+such as channel ban management, and channel operator and permissions
+management. If your network supports it, external control may be
+provided, such as through a web portal.")
 
       services.addCmd(self, "ChanServ", "DROP", "cmd_cs_drop",
-                     "Drop the registration for the specified channel.")
+                     "Drop the registration for the specified channel.",
+                     "Usage: DROP channel password
+ 
+You must give your services account password to use this command.
+ 
+Dropping a channel deletes all ChanServ data for the channel from
+the services database. This action cannot be undone. If you want to
+re-register a previously dropped channel, even if it just happened,
+you must re-register it.")
 
       services.addCmd(self, "ChanServ", "LIST", "cmd_cs_list",
-                     "List all channels registered to your services account.")
+                     "List all channels registered to your services account.",
+                     "Usag: LIST
+ 
+All channel registrations are connected to your services account.
+Using this command, you can see a list of all channels that you have registered
+while logged in to your account.")
 
       services.addCmd(self, "ChanServ", "JOIN", "cmd_cs_join",
                      "Force ChanServ to join the specified channel.")

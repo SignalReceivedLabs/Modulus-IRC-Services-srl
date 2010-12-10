@@ -34,19 +34,59 @@ nicks.")
       services.clients.addClient(@services, "NickServ", "Nick Registration Service")
 
       services.addCmd(self, "NickServ", "IDENTIFY", "cmd_ns_identify",
-                     "Log in to your account and verify your ownership of your current nick.")
+                     "Log in to your account and verify your ownership of your current nick.",
+                     "Usage: IDENTIFY password
+ 
+Using this command, you will be identified to your services account.
+You must have a registered nickname to use this command.
+These IRC services store account information using your e-mail
+address, not your IRC nickname. As such, your authenticated
+name that shows in your WHOIS may be your e-mail address, depending
+on network configuration. To use almost all services functions, you
+must be logged in.")
 
       services.addCmd(self, "NickServ", "UNIDENTIFY", "cmd_ns_unidentify",
-                     "Logs you out of your services account. If you are not logged in, modes are cleared anyway.")
+                     "Logs you out of your services account. If you are not logged in, modes are cleared anyway.",
+                     "Usage: UNIDENTIFY
+ 
+Using this command will remove all flags from you which indicate you are
+logged in to a services account. Services will not check if you are logged
+in and will remove all flags no matter what. This is to help
+resolve any problems that may arise from network sync problems
+or other bugs.")
 
       services.addCmd(self, "NickServ", "LIST", "cmd_ns_list",
-                     "List all nicks currently registered to your account.")
+                     "List all nicks currently registered to your account.",
+                     "Usage: LIST
+ 
+You may use this command to see all nicks that have been registered while
+you have been logged in to your services account, if any.")
 
       services.addCmd(self, "NickServ", "REGISTER", "cmd_ns_register",
-                     "Register your current nick.")
+                     "Register your current nick.",
+                     "Usage: REGISTER password e-mail
+ 
+These services store account information based on your e-mail address, not
+your IRC nickname. When you attempt to register a nickname, services will
+check if an account with the specified e-mail address exists. If it does,
+and your password matches, that account will be saved as the owner of your
+current nickname. Otherwise, a new account will be created with that e-mail
+address. When you identify with services, your e-mail address will be set
+as your active account name. Depending on network configuration, it may
+appear in your WHOIS reply.")
 
       services.addCmd(self, "NickServ", "DROP", "cmd_ns_drop",
-                     "Drop the registration of your current nick.")
+                     "Drop the registration of your current nick.",
+                     "Usage: DROP password
+ 
+You must give your services account password in order to use this command.
+ 
+Using this command will completely erase NickServ's record of your current
+IRC nickname. It will not erase your services account, even if it this
+is the last nickname registered thereto. This action cannot be undone.
+If you wish to un-drop a nick, you must re-register it as a new nick, even
+if the nick was just dropped. To delete your services account entirely,
+contact your network's staff.")
     end
 
     def cmd_ns_list(origin)

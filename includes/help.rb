@@ -24,10 +24,12 @@ module Modulus
       return unless @cmdHooks.has_key? origin.target
       return unless @cmdHooks[origin.target].has_key? command
 
-      help = @cmdHooks[origin.target][command].longDesc
-      help = @cmdHooks[origin.target][command].shortDesc if help.length == 0
+      shortHelp = @cmdHooks[origin.target][command].shortDesc
+      longHelp = @cmdHooks[origin.target][command].longDesc
 
-      self.reply(origin, "#{command}  #{help}")
+      self.reply(origin, "#{command}  #{shortHelp}")
+      self.reply(origin, " ")
+      self.reply(origin, longHelp)
     end
 
     def sendHelpList(origin)
@@ -40,6 +42,8 @@ module Modulus
       @cmdHooks[origin.target].values.each { |cmd|
         self.reply(origin, sprintf("  %15.15s  %s", cmd.commandText, cmd.shortDesc))
       }
+      self.reply(origin, " ")
+      self.reply(origin, "Use HELP COMMAND for more information on a specific command, if available.")
     end
 
     def doHelp(origin)
