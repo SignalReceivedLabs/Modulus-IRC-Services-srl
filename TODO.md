@@ -8,6 +8,8 @@
 * On-Protocol Help
 * Encrypted Passwords
 * Command and message hooks should use Events
+* Dynamic code (re)loading
+* Configuration rehashing
 
 ### Protocol Support
 
@@ -28,6 +30,8 @@
 * UltimateIRCd
 
 ## Modules
+
+* Move commands to individual files
 
 ### NickServ
 
