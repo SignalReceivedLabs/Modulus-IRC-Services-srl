@@ -38,12 +38,7 @@ nicks.")
                      "Usage: IDENTIFY password
  
 Using this command, you will be identified to your services account.
-You must have a registered nickname to use this command.
-These IRC services store account information using your e-mail
-address, not your IRC nickname. As such, your authenticated
-name that shows in your WHOIS may be your e-mail address, depending
-on network configuration. To use almost all services functions, you
-must be logged in.")
+You must have a registered nickname to use this command.")
 
       services.addCmd(self, "NickServ", "UNIDENTIFY", "cmd_ns_unidentify",
                      "Logs you out of your services account. If you are not logged in, modes are cleared anyway.",
@@ -64,16 +59,20 @@ you have been logged in to your services account, if any.")
 
       services.addCmd(self, "NickServ", "REGISTER", "cmd_ns_register",
                      "Register your current nick.",
-                     "Usage: REGISTER password e-mail
+                     "Usage: REGISTER password e-mail [username]
  
-These services store account information based on your e-mail address, not
-your IRC nickname. When you attempt to register a nickname, services will
-check if an account with the specified e-mail address exists. If it does,
-and your password matches, that account will be saved as the owner of your
-current nickname. Otherwise, a new account will be created with that e-mail
-address. When you identify with services, your e-mail address will be set
-as your active account name. Depending on network configuration, it may
-appear in your WHOIS reply.")
+When you attempt to register a nickname, services will check if an account
+with the specified e-mail address exists. If it does, you must also provide
+your services account user name. Otherwise, a new account will be created
+with that e-mail address.
+ 
+If no username is specified, your current IRC nickname will be used.
+ 
+Please be sure to remember your username as you will need it to register
+additional IRC nicknames, and you may need it to use some network services.
+If you don't remember your services account user name but you are logged in
+to services, you may be able to view the user name by performing a WHOIS
+on yourself.")
 
       services.addCmd(self, "NickServ", "DROP", "cmd_ns_drop",
                      "Drop the registration of your current nick.",
@@ -221,7 +220,7 @@ contact your network's staff.")
 
           if emailAcc != nil
             if username != emailAcc.username
-              @services.reply(origin, "The e-mail address #{email} has already been used by a registered user.")
+              @services.reply(origin, "The e-mail address #{email} has already been used by a registered user. If this is you, try including your username as well.")
               return 
             end
           end
