@@ -152,18 +152,30 @@ deleted. The user will be notified of the failure if they are on-line.")
       end
 
       hostname = origin.argsArr[0]
-      restricted = @services.config.getOption("HostServ", "restricted_hostnames").split(" ")
 
-      restricted.each { |restr|
-        restr.gsub!("*", ".*")
+      # TODO: Make this the widest range possible depending on what the server supports.
+      unless hostname.match(/[a-zA-Z0-9.-]/)
+        @services.reply(origin, "That host name is not valid. Host names may only contain alphanumeric characters, '-' and '.'")
+        return
+      end
 
-        if hostname.match(restr)
-          @services.reply(origin, "The host name you provided is not permitted on this network.")
-          return
-        end
-      }
+      unless user.is_services_admin?
+        restricted = @services.config.getOption("HostServ", "restricted_hostnames").split(" ")
 
-      approval = @services.config.getBool("HostServ", "oper_approval")
+        restricted.each { |restr|
+          restr.gsub!("*", ".*")
+
+          if hostname.match(restr)
+            @services.reply(origin, "The host name you provided is not permitted on this network.")
+            return
+          end
+        }
+
+        approval = @services.config.getBool("HostServ", "oper_approval")
+
+      else
+        approval = false
+      end
 
       oldHost = Host.find_by_account_id(account.id)
 
@@ -181,7 +193,7 @@ deleted. The user will be notified of the failure if they are on-line.")
       end
 
       if approval
-        @services.reply(origin, "The host name you provided is not permitted on this network.")
+        @services.reply(origin, "Your host name has been submitted for approval. When approved by network staff, it will be automatically activated.")
         $log.info 'HostServ', "Action required: #{origin.source} has requested host name: #{hostname}"
       else
         self.activate(origin.source, hostname)
@@ -194,15 +206,136 @@ deleted. The user will be notified of the failure if they are on-line.")
     def cmd_hs_approve(origin)
       $log.debug "HostServ", "Got: #{origin.raw}"
 
+      user = @services.users.find(origin.source)
+
+      if not user.is_services_admin?
+        @services.reply(origin, "You must be a services administrator to use this command.")
+        return
+      end
+
       if origin.argsArr.length != 1
         @services.reply(origin, "Usage: APPROVE username")
         return
-      end 
+      end
+
+      account = Account.find_by_username(origin.argsArr[0])
+
+      if account == nil
+        # Maybe they're giving a nick? Check if there's one logged in.
+        user = @services.users.find(origin.argsArr[0])
+
+        if user == nil
+          # Apparently not.
+          @services.reply(origin, "No such user name or nickname exists.")
+          return
+        elsif user.logged_in?
+          account = Account.find_by_username(user.svid)
+
+          if account == nil
+            @services.reply(origin, "No such user name exists and the user with that nickname is not logged in to a services account.")
+            return
+          end
+
+        else
+          @services.reply(origin, "No such user name exists and the user with that nickname is not logged in to a services account.")
+          return
+        end
+      end
+
+      # We made it! Now, is there even a pending request for this user?
+      host = Host.find_by_account_id(account.id)
+
+      if host == nil
+        @services.reply(origin, "There is not a host name request pending for that user.")
+        return
+      end
+
+      if host.approved == true
+        @services.reply(origin, "There is not a host name request pending for that user.")
+        return
+      end
+
+      host.approved = true
+
+      user = @services.users.find(account.username)
+
+      if user != nil
+        if user.svid == account.username
+          self.activate(user.nick, host.hostname)
+          host.active = true
+          @services.link.sendNotice("HostServ", user.nick, "Your pending host name has been approved and automatically activated.")
+        end
+      end
+
+      host.save!
+
+      $log.info 'HostServ', "The host name #{host.hostname} for #{account.username} has been activated by #{origin.source}."
+      @services.reply(origin, "The host name has been approved.")
     end
 
     def cmd_hs_deny(origin)
       $log.debug "HostServ", "Got: #{origin.raw}"
+      user = @services.users.find(origin.source)
 
+      if not user.is_services_admin?
+        @services.reply(origin, "You must be a services administrator to use this command.")
+        return
+      end
+
+      if origin.argsArr.length != 1
+        @services.reply(origin, "Usage: APPROVE username")
+        return
+      end
+
+      account = Account.find_by_username(origin.argsArr[0])
+
+      if account == nil
+        # Maybe they're giving a nick? Check if there's one logged in.
+        user = @services.users.find(origin.argsArr[0])
+
+        if user == nil
+          # Apparently not.
+          @services.reply(origin, "No such user name or nickname exists.")
+          return
+        elsif user.logged_in?
+          account = Account.find_by_username(user.svid)
+
+          if account == nil
+            @services.reply(origin, "No such user name exists and the user with that nickname is not logged in to a services account.")
+            return
+          end
+
+        else
+          @services.reply(origin, "No such user name exists and the user with that nickname is not logged in to a services account.")
+          return
+        end
+      end
+
+      # We made it! Now, is there even a pending request for this user?
+      host = Host.find_by_account_id(account.id)
+
+      if host == nil
+        @services.reply(origin, "There is not a host name request pending for that user.")
+        return
+      end
+
+      if host.approved == true
+        @services.reply(origin, "There is not a host name request pending for that user.")
+        return
+      end
+
+      host.destroy
+
+      user = @services.users.find(account.username)
+
+      if user != nil
+        if user.svid == account.username
+          @services.link.sendNotice("HostServ", user.nick, "Your host name request has been denied. To acquire a new host name, please request another, or contact network staff.")
+        end
+      end
+
+      $log.info 'HostServ', "The host name for #{account.username} has been denied by #{origin.source}."
+      @services.reply(origin, "The host name has been denied and the user's host name record has been deleted.")
     end
 
     def cmd_hs_remove(origin)
@@ -213,7 +346,41 @@ deleted. The user will be notified of the failure if they are on-line.")
     def cmd_hs_on(origin)
       $log.debug "HostServ", "Got: #{origin.raw}"
 
-      
+      user = @services.users.find(origin.source)
+
+      return if user == nil
+
+      unless user.logged_in?
+        @services.reply(origin, "You must be logged in to a services account to use this command.")
+        return
+      end
+
+      account = Account.find_by_username(user.svid)
+
+      if account == nil
+        @services.reply(origin, "You must be logged in to a services account to use this command.")
+        return
+      end
+
+      host = Host.find_by_account_id(account.id)
+
+      if host == nil
+        @services.reply(origin, "There is no record of a vanity host name for your account. To request on, use the SET command. See HELP SET for more information.")
+        return
+      end
+
+      unless host.approved
+        @services.reply(origin, "There is a host name for your account, but it has not been approved. A member of your network's staff must activate the host name before you can use it.")
+        return
+      end
+
+      host.active = true
+      host.save!
+
+      self.activate(origin.source, host.hostname)
+
+      @services.reply(origin, "Host #{host.hostname} for #{origin.source} has been activated.")
+      $log.info 'HostServ', "Host #{host.hostname} for #{origin.source} has been activated by the ON command."
     end
 
     def cmd_hs_off(origin)
@@ -237,13 +404,12 @@ deleted. The user will be notified of the failure if they are on-line.")
           end
         end
       end
-
     end
 
     class Host < ActiveRecord::Base
       belongs_to :account
     end
 
-  end #class 
+  end #class HostServ
 
 end #module Modulus
