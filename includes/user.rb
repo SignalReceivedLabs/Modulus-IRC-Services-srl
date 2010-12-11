@@ -38,7 +38,7 @@ module Modulus
       end
     end
 
-    def loggedIn?
+    def logged_in?
       @loggedIn
     end
 
@@ -66,6 +66,26 @@ module Modulus
       @svid = username
       @loggedIn = true
       @services.events.event(:logged_in, self)
+    end
+
+    def is_oper?
+      @modes.each { |mode|
+        if @services.link.operModes.include? mode
+          return true
+        end      
+      }
+      return false
+    end
+
+    def is_services_admin?
+      @modes.each { |mode|
+
+        mode = @services.link.userModes[mode]
+        if mode == :services_admin or mode == :network_admin or mode == :co_admin or mode == :server_admin
+          return true
+        end      
+      }
+      return false
     end
 
   end #class User

@@ -88,6 +88,15 @@ This is a services administrator command.
 The host name for the given services account user name will be set
 to approved and instantly activated for the user. The user will be
 able to activate or deactivate the host name using HostServ commands.")
+
+      services.addCmd(self, "HostServ", "REJECT", "cmd_hs_reject",
+                     "Reject a pending host name request.",
+                     "Usage: REJECT username
+ 
+This is a services administrator command.
+ 
+The host name for the given services account user will be denied and
+deleted. The user will be notified of the failure if they are on-line.")
     end
 
     def on_connect(origin)
@@ -127,9 +136,71 @@ able to activate or deactivate the host name using HostServ commands.")
     def cmd_hs_set(origin)
       $log.debug "HostServ", "Got: #{origin.raw}"
 
+      if origin.argsArr.length != 1
+        @services.reply(origin, "Usage: SET hostname")
+        return
+      end
+
+      user = @services.users.find(origin.source)
+      return if user == nil
+
+      account = Account.find_by_username(user.svid)
+
+      if account == nil
+        @services.reply(origin, "You must be logged in to a valid services account to use this command.")
+        return
+      end
+
+      hostname = origin.argsArr[0]
+      restricted = @services.config.getOption("HostServ", "restricted_hostnames").split(" ")
+
+      restricted.each { |restr|
+        restr.gsub!("*", ".*")
+
+        if hostname.match(restr)
+          @services.reply(origin, "The host name you provided is not permitted on this network.")
+          return
+        end
+      }
+
+      approval = @services.config.getBool("HostServ", "oper_approval")
+
+      oldHost = Host.find_by_account_id(account.id)
+
+      if oldHost == nil
+        Host.create(
+          :account_id => account.id,
+          :date_added => DateTime.now,
+          :hostname => hostname,
+          :approved => !approval)
+      else
+        oldHost.hostname = hostname
+        oldHost.date_added = DateTime.now
+        oldHost.save!
+        oldHost.approved = !approval
+      end
+
+      if approval
+        @services.reply(origin, "The host name you provided is not permitted on this network.")
+        $log.info 'HostServ', "Action required: #{origin.source} has requested host name: #{hostname}"
+      else
+        self.activate(origin.source, hostname)
+
+        @services.reply(origin, "The host name you provided has been saved and activated.")
+        $log.info 'HostServ', "#{origin.source} has requested and activated host name: #{hostname}"
+      end
     end
 
     def cmd_hs_approve(origin)
+      $log.debug "HostServ", "Got: #{origin.raw}"
+
+      if origin.argsArr.length != 1
+        @services.reply(origin, "Usage: APPROVE username")
+        return
+      end 
+    end
+
+    def cmd_hs_deny(origin)
       $log.debug "HostServ", "Got: #{origin.raw}"
 
     end

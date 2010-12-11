@@ -93,7 +93,7 @@ contact your network's staff.")
 
       user = @services.users.find(origin.source)
 
-      unless user.loggedIn?
+      unless user.logged_in?
         @services.reply(origin, "You must be logged in to a services account in order to use this command.")
         return
       end

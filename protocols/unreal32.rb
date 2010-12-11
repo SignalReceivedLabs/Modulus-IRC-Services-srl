@@ -37,6 +37,38 @@ module Modulus
         "+" => :voice
       }
 
+      @userModes = {
+        "A" => :server_admin,
+        "a" => :services_admin,
+        "B" => :bot,
+        "C" => :co_admin,
+        "d" => :deaf,
+        "G" => :censored,
+        "g" => :read_globops,
+        "H" => :hidden_op,
+        "h" => :help_op,
+        "i" => :invisible,
+        "N" => :network_administrator,
+        "O" => :local_operator,
+        "o" => :global_operator,
+        "p" => :whois_hide,
+        "q" => :no_kicks,
+        "R" => :registered_privmsgs_only,
+        "r" => :registered,
+        "S" => :services_daemon,
+        "s" => :read_server_notices,
+        "T" => :no_ctcps,
+        "t" => :using_vhost,
+        "V" => :webtv_user,
+        "v" => :read_dcc_rejection,
+        "W" => :read_whois,
+        "w" => :read_wallops,
+        "x" => :hidden_hostname,
+        "z" => :using_ssl
+      }
+
+      @operModes = [ "A", "a", "C", "N", "O", "o" ]
+
       @cmdList = {
 
         # Server Commands

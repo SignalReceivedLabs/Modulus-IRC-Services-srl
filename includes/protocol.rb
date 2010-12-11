@@ -20,7 +20,7 @@ module Modulus
 
   class ProtocolAbstractionMixin
 
-    attr_reader :userModePrefixes, :channelPrefixes
+    attr_reader :userModePrefixes, :channelPrefixes, :userModes, :operModes
 
     def startRecvThread
       @readThread = Thread.new {

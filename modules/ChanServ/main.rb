@@ -101,7 +101,7 @@ while logged in to your account.")
       
       user = @services.users.find(origin.source)
 
-      unless user.loggedIn?
+      unless user.logged_in?
         @services.reply(origin, "You must be logged in to a services account in order to use this command.")
         return
       end
@@ -131,7 +131,7 @@ while logged in to your account.")
       else
         user = @services.users.find(origin.source)
 
-        unless user.loggedIn?
+        unless user.logged_in?
           @services.reply(origin, "You must be logged in to a services account in order to register a channel.")
           return
         end
@@ -169,7 +169,7 @@ while logged in to your account.")
 
       user = @services.users.find(origin.source)
 
-      unless user.loggedIn?
+      unless user.logged_in?
         @services.reply(origin, "You must be logged in to a services account in order to use this command.")
         return
       end
@@ -196,7 +196,7 @@ while logged in to your account.")
 
       user = @services.users.find(origin.source)
 
-      unless user.loggedIn?
+      unless user.logged_in?
         @services.reply(origin, "You must be logged in to a services account in order to use this command.")
         return
       end
@@ -221,7 +221,7 @@ while logged in to your account.")
         return
       end
 
-      unless user.loggedIn?
+      unless user.logged_in?
         @services.reply(origin, "The user must be logged in to a services account.")
         return
       end
