@@ -35,10 +35,8 @@
 
 ### NickServ
 
-* Register
 * Drop
 * Identify
-* List
 * Info
 * Ghost
 * Noexpire
@@ -82,11 +80,8 @@
 
 ### HostServ
 
-* Set
-* Remove
-* Approve
-* On
-* Off
+* Set command for other users for services administrators
+* Allow different characters depending on protocol or configuration. Not really sure how to do that yet.
 
 ### BotServ
 
@@ -113,7 +108,6 @@
 
 * Akill
 * RegexKill
-* Check (DNSBL)
 
 ### MemoServ
 
