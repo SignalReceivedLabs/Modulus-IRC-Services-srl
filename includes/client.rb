@@ -22,15 +22,14 @@ module Modulus
 
     attr_reader :nick, :realName, :services
 
-    def initialize(parent, nick, realName)
-      @services = parent
+    def initialize(nick, realName)
       @nick = nick
       @realName = realName
       @channels = Array.new
     end
 
     def joinLogChan
-      logChan = @services.config.getOption("Core", "log_channel")
+      logChan = Modulus.config.getOption("Core", "log_channel")
 
       if logChan != nil
         self.addChannel logChan
@@ -39,26 +38,26 @@ module Modulus
 
     def addChannel(channel)
       @channels << channel
-      @services.link.joinChannel(@nick, channel)
+      Modulus.link.joinChannel(@nick, channel)
     end
 
     def removeChannel(channel)
       @channels.delete channel
-      @services.link.partChannel(@nick, channel)
+      Modulus.link.partChannel(@nick, channel)
     end
 
     def joinAllChannels
       @channels.each { |c|
-        @services.link.joinChannel(@nick, c)
+        Modulus.link.joinChannel(@nick, c)
       }
     end
 
     def connect
-      @services.link.createClient(@nick, @realName)
+      Modulus.link.createClient(@nick, @realName)
     end
 
     def disconnect(reason="")
-      @services.link.destroyClient(@nick, reason)
+      Modulus.link.destroyClient(@nick, reason)
     end
 
   end #class Pseudoclient

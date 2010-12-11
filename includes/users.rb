@@ -20,13 +20,12 @@ module Modulus
 
   class Users
 
-    def initialize(services)
-      @services = services
+    def initialize
       @nicks = Hash.new # Nick => ESVID
       @users = Hash.new # ESVID => User Object
 
-      @services.events.register(:sethost, self, "on_set_host")
-      @services.events.register(:mode, self, "on_mode")
+      Modulus.events.register(:sethost, self, "on_set_host")
+      Modulus.events.register(:mode, self, "on_mode")
     end
 
     def addUser(user)
@@ -50,7 +49,7 @@ module Modulus
 
     def on_mode(origin)
       origin = origin[0]
-      return if @services.link.isChannel? origin.target
+      return if Modulus.link.isChannel? origin.target
 
       $log.debug 'users', "Doing modes for #{origin.target}"
 

@@ -22,8 +22,7 @@ module Modulus
 
     attr_accessor :nick, :svid, :username, :hostname, :channels, :timestamp, :modes, :loggedIn, :vhost, :modes
 
-    def initialize(services, nick, svid, username, hostname, timestamp)
-      @services = services
+    def initialize(nick, svid, username, hostname, timestamp)
       @nick = nick
       @svid = svid
       @username = username
@@ -65,12 +64,12 @@ module Modulus
       $log.debug 'user', "User at nick #{@nick} has logged in as #{username}"
       @svid = username
       @loggedIn = true
-      @services.events.event(:logged_in, self)
+      Modulus.events.event(:logged_in, self)
     end
 
     def is_oper?
       @modes.each { |mode|
-        if @services.link.operModes.include? mode
+        if @link.operModes.include? mode
           return true
         end      
       }
@@ -80,7 +79,7 @@ module Modulus
     def is_services_admin?
       @modes.each { |mode|
 
-        mode = @services.link.userModes[mode]
+        mode = @link.userModes[mode]
         if mode == :services_admin or mode == :network_admin or mode == :co_admin or mode == :server_admin
           return true
         end      

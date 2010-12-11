@@ -22,23 +22,21 @@ module Modulus
 
     require 'resolv'
 
-    def initialize(services)
-      @services = services
-
-      services.addService("BanServ", self,
+    def initialize
+      Modulus.addService("BanServ", self,
                          "Ban Management Service
                          
 BanServ allows services administrators to create and
 remove network bans, as well as monitor the network
 for blacklisted connections.")
 
-      services.events.register(:database_connected, self, "dbConnected")
-      services.events.register(:connected, self, "on_connect")
+      Modulus.events.register(:database_connected, self, "dbConnected")
+      Modulus.events.register(:connected, self, "on_connect")
 
-      services.clients.addClient(@services, "BanServ", "Ban Management Service")
+      Modulus.clients.addClient("BanServ", "Ban Management Service")
 
 
-      services.addCmd(self, "BanServ", "AUTOKILL", "cmd_bs_autokill",
+      Modulus.addCmd(self, "BanServ", "AUTOKILL", "cmd_bs_autokill",
                      "Manage the automatic kill list.",
                      "Usage: AUTOKILL command parameters
  
@@ -57,7 +55,7 @@ with your network's protocol. The set ban reason will be used as the
 protocol's ban reason.")
 
 
-      services.addCmd(self, "BanServ", "REGEXKILL", "cmd_bs_regexkill",
+      Modulus.addCmd(self, "BanServ", "REGEXKILL", "cmd_bs_regexkill",
                      "Manage the regular expression kill list.",
                      "Usage: REGEXKILL command parameters
  
@@ -76,7 +74,7 @@ with your network's protocol. The set ban reason will be used as the
 protocol's ban reason.")
 
 
-      services.addCmd(self, "BanServ", "CHECK", "cmd_bs_check",
+      Modulus.addCmd(self, "BanServ", "CHECK", "cmd_bs_check",
                      "Check IP addresses against DNSBLs.",
                      "Usage: CHECK host
  
@@ -103,25 +101,25 @@ Matching IP addresses will not be automatically banned.")
     def cmd_bs_check(origin)
       $log.debug "BanServ", "Got: #{origin.raw}"
 
-      blacklists = @services.config.getOption("BanServ", "use_dnsbl")
+      blacklists = Modulus.config.getOption("BanServ", "use_dnsbl")
 
       if blacklists == nil
-        @services.reply(origin, "DNSBL lookups are not enabled")
+        Modulus.reply(origin, "DNSBL lookups are not enabled")
         return
       end
 
       if blacklists == "disabled"
-        @services.reply(origin, "DNSBL lookups are not enabled")
+        Modulus.reply(origin, "DNSBL lookups are not enabled")
         return
       end
 
       if origin.argsArr.length != 1
-        @services.reply(origin, "Usage: CHECK ip")
+        Modulus.reply(origin, "Usage: CHECK ip")
         return
       end
 
       if !origin.argsArr[0].match(/\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}/)
-        @services.reply(origin, "You must provide a valid IP address.")
+        Modulus.reply(origin, "You must provide a valid IP address.")
         return
       end
 
@@ -132,9 +130,9 @@ Matching IP addresses will not be automatically banned.")
           result = Resolv::getaddress("#{check}.#{dnsbl}")
           result = result.split(".")[3]
 
-          @services.reply(origin, "Found in #{dnsbl} as #{result}")
+          Modulus.reply(origin, "Found in #{dnsbl} as #{result}")
         rescue
-          @services.reply(origin, "Not found in #{dnsbl}.")
+          Modulus.reply(origin, "Not found in #{dnsbl}.")
         end
       }
       
@@ -144,7 +142,7 @@ Matching IP addresses will not be automatically banned.")
     end
     
     def join(chan)
-        @services.clients.clients["BanServ"].addChannel(chan)
+        Modulus.clients.clients["BanServ"].addChannel(chan)
     end
 
     def dbConnected

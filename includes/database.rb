@@ -20,10 +20,10 @@ module Modulus
   require 'rubygems'
   require 'active_record'
 
-  def Modulus.startDB(services)
+  def Modulus.startDB
     $log.info 'database', 'Starting database connection for the first time this session.'
 
-    type = services.config.getOption('Database', 'database_type')
+    type = Modulus.config.getOption('Database', 'database_type')
     type.downcase! unless type == nil
 
     validAdapters = ["sqlite3","mysql","postgresql"]
@@ -42,17 +42,17 @@ module Modulus
     case type
       when "sqlite3"
         # This is the filename. It's all we need. Sweet!
-        name = services.config.getOption('Database', 'database_name')
+        name = Modulus.config.getOption('Database', 'database_name')
 
         ActiveRecord::Base.establish_connection(
           :adapter => "sqlite3",
           :database => name)
 
       when "mysql"
-        host = services.config.getOption('Database', 'database_address')
-        user = services.config.getOption('Database', 'database_user_name')
-        password = services.config.getOption('Database', 'database_password')
-        name = services.config.getOption('Database', 'database_name')
+        host = Modulus.config.getOption('Database', 'database_address')
+        user = Modulus.config.getOption('Database', 'database_user_name')
+        password = Modulus.config.getOption('Database', 'database_password')
+        name = Modulus.config.getOption('Database', 'database_name')
 
         ActiveRecord::Base.establish_connection(
           :adapter => "mysql",
@@ -63,10 +63,10 @@ module Modulus
 
 
       when "postgresql"
-        host = services.config.getOption('Database', 'database_address')
-        user = services.config.getOption('Database', 'database_user_name')
-        password = services.config.getOption('Database', 'database_password')
-        name = services.config.getOption('Database', 'database_name')
+        host = Modulus.config.getOption('Database', 'database_address')
+        user = Modulus.config.getOption('Database', 'database_user_name')
+        password = Modulus.config.getOption('Database', 'database_password')
+        name = Modulus.config.getOption('Database', 'database_name')
 
         ActiveRecord::Base.establish_connection(
           :adapter => "mysql",
@@ -78,7 +78,7 @@ module Modulus
     end
 
     $log.debug 'database', "Connection to database successful."
-    services.events.event(:database_connected)
+    Modulus.events.event(:database_connected)
 
   end
 end #module Modulus

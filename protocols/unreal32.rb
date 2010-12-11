@@ -22,9 +22,7 @@ module Modulus
 
     require 'socket'
 
-    def initialize(config, services)
-      @services = services
-      @config = config
+    def initialize
       @sendq = Queue.new
 
       @channelPrefixes = [ "#" ]
@@ -189,17 +187,17 @@ module Modulus
 
     def connect(clients)
       $log.debug "protocol-unreal32", "Starting connection to IRC server."
-      host = @config.getOption('Network', 'link_address')
-      port = @config.getOption('Network', 'link_port')
-      bindAddr = @config.getOption('Network', 'bind_address')
-      bindPort = @config.getOption('Network', 'bind_port')
+      host = Modulus.config.getOption('Network', 'link_address')
+      port = Modulus.config.getOption('Network', 'link_port')
+      bindAddr = Modulus.config.getOption('Network', 'bind_address')
+      bindPort = Modulus.config.getOption('Network', 'bind_port')
 
       @socket = TCPSocket.new(host, port, bindAddr, bindPort)
 
-      @socket.puts "PASS :#{@config.getOption('Network', 'link_password')}"
+      @socket.puts "PASS :#{Modulus.config.getOption('Network', 'link_password')}"
 
-      @socket.puts "SERVER #{@config.getOption('Network', 'services_hostname')} 1 :#{@config.getOption('Network', 'services_name')}"
-      #@socket.puts "SERVER #{@config.getOption('Network', 'services_hostname')} 1 :U2309-0 #{@config.getOption('Network', 'services_name')}"
+      @socket.puts "SERVER #{Modulus.config.getOption('Network', 'services_hostname')} 1 :#{Modulus.config.getOption('Network', 'services_name')}"
+      #@socket.puts "SERVER #{Modulus.config.getOption('Network', 'services_hostname')} 1 :U2309-0 #{Modulus.config.getOption('Network', 'services_name')}"
       
       lastMsg = @socket.gets.chomp
       puts lastMsg
@@ -210,13 +208,13 @@ module Modulus
 
       lastMsg = @socket.gets.chomp
       puts lastMsg
-      unless lastMsg == "PASS :#{@config.getOption('Network', 'link_password')}"
+      unless lastMsg == "PASS :#{Modulus.config.getOption('Network', 'link_password')}"
         $stderr.puts "Connection failed: Server replied with incorrect password."
         exit -1
       end
 
-      host = @config.getOption('Network', 'services_hostname')
-      user = @config.getOption('Network', 'services_user')
+      host = Modulus.config.getOption('Network', 'services_hostname')
+      user = Modulus.config.getOption('Network', 'services_user')
 
       clients.each { |client|
         puts "#{client.nick}"
@@ -225,7 +223,7 @@ module Modulus
 
       @socket.puts "PROTOCTL ESVID TOKEN SJ3 VHP UMODE2 CHANMODES NOQUIT"
       @socket.puts "ES"
-      @socket.puts "AO 0 #{Time.now.utc.to_i} 0 * 0 0 0 :#{@config.getOption('Network', 'network_name')}"
+      @socket.puts "AO 0 #{Time.now.utc.to_i} 0 * 0 0 0 :#{Modulus.config.getOption('Network', 'network_name')}"
 
       self.startSendThread
       return self.startRecvThread
@@ -235,7 +233,7 @@ module Modulus
       if @socket != nil
         $log.info "protocol-unreal32", "Closing connection: #{reason}"
 
-        name = @config.getOption('Network', 'services_hostname')
+        name = Modulus.config.getOption('Network', 'services_hostname')
         @socket.puts ":#{name} SQUIT #{name} :Services is shutting down."
       end
     end
@@ -266,7 +264,7 @@ module Modulus
       # &     nick   hopcount timestamp   username hostname   server                  servicestamp  :realname
       # NICK  Kabaka 1        1291720576  kabaka   localhost  draco.vacantminded.com  *             :kabaka
       # 0     1      2        3           4        5          6                       7             8
-      User.new(@services, origin.arr[1], origin.arr[7], origin.arr[5], origin.arr[5], origin.arr[3])
+      User.new(origin.arr[1], origin.arr[7], origin.arr[5], origin.arr[5], origin.arr[3])
     end
 
     def isChannel?(str)
@@ -280,7 +278,7 @@ module Modulus
       origin.arr[1][0] = "" if origin.arr[1].start_with? ":"
 
       if origin.arr.length == 2
-        @sendq << "PONG #{@config.getOption('Network', 'services_hostname')} #{origin.arr[1]}"
+        @sendq << "PONG #{Modulus.config.getOption('Network', 'services_hostname')} #{origin.arr[1]}"
       else
         @sendq << "PONG #{origin.arr[2]} #{origin.arr[1]}"
       end
@@ -297,8 +295,8 @@ module Modulus
     def createClient(nick, realName)
       #@sendq << ":#{nick} SVSKILL #{nick} :Collision with services."
 
-      host = @config.getOption('Network', 'services_hostname')
-      user = @config.getOption('Network', 'services_user')
+      host = Modulus.config.getOption('Network', 'services_hostname')
+      user = Modulus.config.getOption('Network', 'services_user')
 
       @sendq << "NICK #{nick} 1 #{Time.now.utc.to_i} #{user} #{host} #{host} * +oS * :#{realName}"
     end
@@ -321,11 +319,11 @@ module Modulus
     end
 
     def svsmode(target, mode)
-      @sendq << ":#{@config.getOption('Network', 'services_hostname')} n #{target } #{mode}"
+      @sendq << ":#{Modulus.config.getOption('Network', 'services_hostname')} n #{target } #{mode}"
     end
 
     def svs2mode(target, mode)
-      @sendq << ":#{@config.getOption('Network', 'services_hostname')} v #{target } #{mode}"
+      @sendq << ":#{Modulus.config.getOption('Network', 'services_hostname')} v #{target } #{mode}"
     end
 
     def joinChannel(nick, channel)

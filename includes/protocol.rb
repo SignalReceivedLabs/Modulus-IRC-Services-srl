@@ -25,11 +25,11 @@ module Modulus
     def startRecvThread
       @readThread = Thread.new {
 
-        #while not @services.quitting
+        #while not Modulus.quitting
         # TODO: Reconnections!
 
           $log.debug "protocol", "Socket reader thread started."
-          @parser = Modulus::Parser.new(@cmdList, @services)
+          @parser = Modulus::Parser.new(@cmdList)
 
           while line = @socket.gets
             #TODO: Parse this, hand it off to something else.

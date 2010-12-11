@@ -31,9 +31,7 @@ module Modulus
     ERROR = 3
     FATAL = 4
 
-    def initialize(services, config)
-      @services = services
-
+    def initialize(config)
       logdir = config.getOption('Core', 'log_location')
       @logChannel = config.getOption('Core', 'log_channel')
 
@@ -87,10 +85,14 @@ module Modulus
     end
 
     def logToChannel(severity, msg)
-      return if @logChannel == nil or @services.link == nil
+      begin
+        return if @logChannel == nil or Modulus.link == nil
 
-      if @chatVerbosity <= severity
-        @services.link.sendPrivmsg("Global", @logChannel, msg)
+        if @chatVerbosity <= severity
+          Modulus.link.sendPrivmsg("Global", @logChannel, msg)
+        end
+      rescue
+        # Must not be working right now...
       end
     end
 

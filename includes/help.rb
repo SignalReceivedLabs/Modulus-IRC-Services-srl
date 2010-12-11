@@ -18,48 +18,44 @@
 
 module Modulus
 
-  class Services
+  def Modulus.sendHelp(origin, command)
+    return unless @@cmdHooks.has_key? origin.target
+    return unless @@cmdHooks[origin.target].has_key? command
 
-    def sendHelp(origin, command)
-      return unless @cmdHooks.has_key? origin.target
-      return unless @cmdHooks[origin.target].has_key? command
+    shortHelp = @@cmdHooks[origin.target][command].shortDesc
+    longHelp = @@cmdHooks[origin.target][command].longDesc
 
-      shortHelp = @cmdHooks[origin.target][command].shortDesc
-      longHelp = @cmdHooks[origin.target][command].longDesc
+    self.reply(origin, "#{command}  #{shortHelp}")
+    self.reply(origin, " ")
+    self.reply(origin, longHelp)
+  end
 
-      self.reply(origin, "#{command}  #{shortHelp}")
-      self.reply(origin, " ")
-      self.reply(origin, longHelp)
+  def Modulus.sendHelpList(origin)
+    return unless @@cmdHooks.has_key? origin.target
+    return unless @@serviceModules.modules.has_key? origin.target
+
+    self.reply(origin, @@serviceModules.modules[origin.target].description)
+    self.reply(origin, " ")
+
+    @@cmdHooks[origin.target].values.each { |cmd|
+      self.reply(origin, sprintf("  %15.15s  %s", cmd.commandText, cmd.shortDesc))
+    }
+    self.reply(origin, " ")
+    self.reply(origin, "Use HELP COMMAND for more information on a specific command, if available.")
+  end
+
+  def Modulus.doHelp(origin)
+    origin = origin[0]
+    return unless origin.type == :privmsg or origin.type == :notice
+    
+    return unless origin.message.upcase.start_with? "HELP"
+
+    arr = origin.message.upcase.split(" ")
+    if arr.length == 1
+      sendHelpList(origin)
+    else
+      sendHelp(origin, arr[1])
     end
-
-    def sendHelpList(origin)
-      return unless @cmdHooks.has_key? origin.target
-      return unless @serviceModules.modules.has_key? origin.target
-
-      self.reply(origin, @serviceModules.modules[origin.target].description)
-      self.reply(origin, " ")
-
-      @cmdHooks[origin.target].values.each { |cmd|
-        self.reply(origin, sprintf("  %15.15s  %s", cmd.commandText, cmd.shortDesc))
-      }
-      self.reply(origin, " ")
-      self.reply(origin, "Use HELP COMMAND for more information on a specific command, if available.")
-    end
-
-    def doHelp(origin)
-      origin = origin[0]
-      return unless origin.type == :privmsg or origin.type == :notice
-      
-      return unless origin.message.upcase.start_with? "HELP"
-
-      arr = origin.message.upcase.split(" ")
-      if arr.length == 1
-        sendHelpList(origin)
-      else
-        sendHelp(origin, arr[1])
-      end
-    end
-
-  end #class  Help
+  end
 
 end #module Modulus

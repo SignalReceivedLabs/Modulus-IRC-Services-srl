@@ -20,22 +20,20 @@ module Modulus
 
   class ChanServ
 
-    def initialize(services)
-      @services = services
-
-      services.addService("ChanServ", self,
+    def initialize
+      Modulus.addService("ChanServ", self,
                          "Channel Registration Services
                          
 ChanServ allows users to register channels, maintain
 channel settings, and maintain channel operator lists.")
 
-      services.events.register(:database_connected, self, "dbConnected")
-      services.events.register(:done_connecting, self, "joinRegistered")
-      services.events.register(:join, self, "on_join")
+      Modulus.events.register(:database_connected, self, "dbConnected")
+      Modulus.events.register(:done_connecting, self, "joinRegistered")
+      Modulus.events.register(:join, self, "on_join")
 
-      services.clients.addClient(@services, "ChanServ", "Channel Registration Service")
+      Modulus.clients.addClient("ChanServ", "Channel Registration Service")
 
-      services.addCmd(self, "ChanServ", "GRANT", "cmd_cs_grant",
+      Modulus.addCmd(self, "ChanServ", "GRANT", "cmd_cs_grant",
                      "Grant user privileges for the specified channel.",
                      "Usage: GRANT channel nick permissions
  
@@ -52,7 +50,7 @@ PROTECT - User gains or may acquire protected channel status. (+a)
 OWNER - User gains or may acquire channel owner status. (+q)
         User may also perform any channel administration tasks.")
 
-      services.addCmd(self, "ChanServ", "REGISTER", "cmd_cs_register",
+      Modulus.addCmd(self, "ChanServ", "REGISTER", "cmd_cs_register",
                      "Register the specified channel.",
                      "Usage: REGISTER channel password
  
@@ -62,7 +60,7 @@ such as channel ban management, and channel operator and permissions
 management. If your network supports it, external control may be
 provided, such as through a web portal.")
 
-      services.addCmd(self, "ChanServ", "DROP", "cmd_cs_drop",
+      Modulus.addCmd(self, "ChanServ", "DROP", "cmd_cs_drop",
                      "Drop the registration for the specified channel.",
                      "Usage: DROP channel password
  
@@ -73,7 +71,7 @@ the services database. This action cannot be undone. If you want to
 re-register a previously dropped channel, even if it just happened,
 you must re-register it.")
 
-      services.addCmd(self, "ChanServ", "LIST", "cmd_cs_list",
+      Modulus.addCmd(self, "ChanServ", "LIST", "cmd_cs_list",
                      "List all channels registered to your services account.",
                      "Usag: LIST
  
@@ -81,7 +79,7 @@ All channel registrations are connected to your services account.
 Using this command, you can see a list of all channels that you have registered
 while logged in to your account.")
 
-      services.addCmd(self, "ChanServ", "JOIN", "cmd_cs_join",
+      Modulus.addCmd(self, "ChanServ", "JOIN", "cmd_cs_join",
                      "Force ChanServ to join the specified channel.")
     end
 
@@ -89,20 +87,20 @@ while logged in to your account.")
       $log.debug "ChanServ", "Got: #{origin.raw}"
 
       if origin.argsArr.length != 1
-        @services.reply(origin, "Usage: JOIN channel")
+        Modulus.reply(origin, "Usage: JOIN channel")
       else
-        @services.link.joinChannel("ChanServ", origin.args)
-        @services.reply(origin, "I have joined #{origin.args}.")
+        Modulus.joinChannel("ChanServ", origin.args)
+        Modulus.reply(origin, "I have joined #{origin.args}.")
       end
     end
 
     def cmd_cs_list(origin)
       $log.debug "ChanServ", "Got: #{origin.raw}"
       
-      user = @services.users.find(origin.source)
+      user = Modulus.users.find(origin.source)
 
       unless user.logged_in?
-        @services.reply(origin, "You must be logged in to a services account in order to use this command.")
+        Modulus.reply(origin, "You must be logged in to a services account in order to use this command.")
         return
       end
 
@@ -110,16 +108,16 @@ while logged in to your account.")
 
       if channels.length != 0
       
-        @services.reply(origin, "Channels registered to #{user.svid}:")
-        @services.reply(origin, sprintf("%30.30s  %-25.25s", "Channel", "Date Registered"))
+        Modulus.reply(origin, "Channels registered to #{user.svid}:")
+        Modulus.reply(origin, sprintf("%30.30s  %-25.25s", "Channel", "Date Registered"))
 
         channels.each { |channel|
-          @services.reply(origin, sprintf("%30.30s  %-25.25s", channel.name, channel.dateRegistered))
+          Modulus.reply(origin, sprintf("%30.30s  %-25.25s", channel.name, channel.dateRegistered))
         }
 
-        @services.reply(origin, "Total channels registered: #{channels.length}.")
+        Modulus.reply(origin, "Total channels registered: #{channels.length}.")
       else
-        @services.reply(origin, "There are currently no channels registered to #{user.svid}.")
+        Modulus.reply(origin, "There are currently no channels registered to #{user.svid}.")
       end
     end
 
@@ -127,23 +125,23 @@ while logged in to your account.")
       $log.debug "ChanServ", "Got: #{origin.raw}"
 
       if origin.argsArr.length != 1
-        @services.reply(origin, "Usage: REGISTER channel")
+        Modulus.reply(origin, "Usage: REGISTER channel")
       else
-        user = @services.users.find(origin.source)
+        user = Modulus.users.find(origin.source)
 
         unless user.logged_in?
-          @services.reply(origin, "You must be logged in to a services account in order to register a channel.")
+          Modulus.reply(origin, "You must be logged in to a services account in order to register a channel.")
           return
         end
 
         if Channel.find_by_name(origin.args)
-          @services.reply(origin, "The channel #{origin.args} is already registered.")
+          Modulus.reply(origin, "The channel #{origin.args} is already registered.")
         else
 
           account = Account.find_by_username(user.svid)
 
           if account == nil
-            @services.reply(origin, "You must be logged in to a services account in order to register a channel.")
+            Modulus.reply(origin, "You must be logged in to a services account in order to register a channel.")
             return
           end
 
@@ -159,7 +157,7 @@ while logged in to your account.")
 
           self.join origin.args
 
-          @services.reply(origin, "You have registered #{origin.args}.")
+          Modulus.reply(origin, "You have registered #{origin.args}.")
         end
       end
     end
@@ -167,26 +165,26 @@ while logged in to your account.")
     def cmd_cs_drop(origin)
       $log.debug "ChanServ", "Got: #{origin.raw}"
 
-      user = @services.users.find(origin.source)
+      user = Modulus.users.find(origin.source)
 
       unless user.logged_in?
-        @services.reply(origin, "You must be logged in to a services account in order to use this command.")
+        Modulus.reply(origin, "You must be logged in to a services account in order to use this command.")
         return
       end
 
-      @services.reply(origin, "Not yet implemented.")
+      Modulus.reply(origin, "Not yet implemented.")
       return
 
       channel = Channel.find_by_owner_id(Account.find_by_username(user.svid))
 
       if channel == nil
-        @services.reply(origin, "That channel is not registered.")
+        Modulus.reply(origin, "That channel is not registered.")
       else
         channel = Channel.find_by_name(origin.argsArr[0])
         channel.destroy
 
         self.leave origin.argsArr[0]
-        @services.reply(origin, "You have dropped the registration for #{origin.argsArr[0]}.")
+        Modulus.reply(origin, "You have dropped the registration for #{origin.argsArr[0]}.")
         $log.info 'ChanServ', "#{origin.source} has dropped the registration for #{origin.argsArr[0]}."
       end
     end
@@ -194,42 +192,42 @@ while logged in to your account.")
     def cmd_cs_grant(origin)
       $log.debug "ChanServ", "Got: #{origin.raw}"
 
-      user = @services.users.find(origin.source)
+      user = Modulus.users.find(origin.source)
 
       unless user.logged_in?
-        @services.reply(origin, "You must be logged in to a services account in order to use this command.")
+        Modulus.reply(origin, "You must be logged in to a services account in order to use this command.")
         return
       end
 
       if origin.argsArr.length < 3
-        @services.reply(origin, "Usage: GRANT #channel nick privileges")
-        @services.reply(origin, "See HELP GRANT for more information. Valid privileges: VOICE HALFOP OP PROTECT OWNER BAN")
+        Modulus.reply(origin, "Usage: GRANT #channel nick privileges")
+        Modulus.reply(origin, "See HELP GRANT for more information. Valid privileges: VOICE HALFOP OP PROTECT OWNER BAN")
         return
       end
 
       channel = Channel.find_by_name(origin.argsArr[0])
 
       if channel == nil
-        @services.reply(origin, "That channel is not registered.")
+        Modulus.reply(origin, "That channel is not registered.")
         return
       end
 
-      user = @services.users.find(origin.argsArr[1])
+      user = Modulus.users.find(origin.argsArr[1])
 
       if user == nil
-        @services.reply(origin, "The user must be on-line.")
+        Modulus.reply(origin, "The user must be on-line.")
         return
       end
 
       unless user.logged_in?
-        @services.reply(origin, "The user must be logged in to a services account.")
+        Modulus.reply(origin, "The user must be logged in to a services account.")
         return
       end
 
       account = Account.find_by_username(user.svid)
 
       if account == nil
-        @services.reply(origin, "The user must be logged in to a services account.")
+        Modulus.reply(origin, "The user must be logged in to a services account.")
         return
       end
 
@@ -238,7 +236,7 @@ while logged in to your account.")
       return if access == nil
 
       if access.length == 0
-        @services.reply(origin, "No valid permissions given. See HELP GRANT for more information.")
+        Modulus.reply(origin, "No valid permissions given. See HELP GRANT for more information.")
         return
       end
 
@@ -254,7 +252,7 @@ while logged in to your account.")
           :access => access)
       end
 
-      @services.reply(origin, "Permissions for #{origin.argsArr[1]} have been changed.")
+      Modulus.reply(origin, "Permissions for #{origin.argsArr[1]} have been changed.")
       $log.info 'ChanServ', "#{origin.source} updated channel access permissions: #{origin.args}."
     end
 
@@ -265,8 +263,8 @@ while logged in to your account.")
     def on_join(origin)
       origin = origin[0]
       $log.debug "ChanServ", "on_join Got: #{origin}"
-      unless @services.clients.isMyClient? origin.source
-        user = @services.users.find(origin.source)
+      unless Modulus.clients.isMyClient? origin.source
+        user = Modulus.users.find(origin.source)
         return if user == nil
 
         chanAccess = self.getAccess(origin.message, user)
@@ -278,10 +276,10 @@ while logged in to your account.")
           chan = Channel.find_by_name(origin.message)
           return if chan == nil
 
-          arr = self.parseAccess(chan.access)
+          arr = self.parseAccess(origin, chan.defaultAccess)
         end
 
-        @services.link.channelMode("ChanServ", origin.message, arr[0], arr[1])
+        Modulus.link.channelMode("ChanServ", origin.message, arr[0], arr[1])
       end
     end
 
@@ -323,13 +321,13 @@ while logged in to your account.")
     end
 
     def join(chan)
-        @services.clients.clients["ChanServ"].addChannel(chan)
-        @services.link.channelMode("ChanServ", chan, "+ntr")
+        Modulus.clients.clients["ChanServ"].addChannel(chan)
+       Modulus.link.channelMode("ChanServ", chan, "+ntr")
     end
 
     def leave(chan)
-        @services.link.channelMode("ChanServ", chan.name, "-r")
-        @services.clients.clients["ChanServ"].removeChannel(chan.name)
+       Modulus.link.channelMode("ChanServ", chan.name, "-r")
+        Modulus.clients.clients["ChanServ"].removeChannel(chan.name)
     end
 
     def getAccess(chan, user)
@@ -378,7 +376,7 @@ while logged in to your account.")
 
     def buildAccess(origin, args)
       if args.length > 6
-        @services.reply(origin, "Too many permissions given.")
+        Modulus.reply(origin, "Too many permissions given.")
         return nil
       end
 
@@ -399,7 +397,7 @@ while logged in to your account.")
           when "BAN"
             access += "BAN "
           else
-            @services.reply(origin, "Ignoring unknown permission #{arg}")  
+            Modulus.reply(origin, "Ignoring unknown permission #{arg}")  
         end
       }
 

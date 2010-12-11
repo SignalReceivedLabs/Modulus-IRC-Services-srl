@@ -20,9 +20,8 @@ module Modulus
 
   class Parser
 
-    def initialize(cmdList, services)
+    def initialize(cmdList)
       @cmdList = cmdList
-      @services = services
     end
 
     def parse(line)
@@ -69,16 +68,16 @@ module Modulus
       end
 
       if origin.type == :ping
-        @services.link.sendPong(origin)
+        Modulus.link.sendPong(origin)
       end
 
       puts "#{origin}"
-      @services.link.parse(origin)
+      Modulus.link.parse(origin)
     end
 
     def work(origin)
       $log.debug 'parser', "Doing work on #{origin}"
-      @services.runHooks(origin)
+      Modulus.runHooks(origin)
     end
 
     def handleNick(origin)
@@ -87,23 +86,23 @@ module Modulus
       # TODO: Move part of this to protocol handler
       if origin.arr.length == 4
         #nick cahnge
-        @services.users.changeNick(origin.source, origin.arr[2], origin.arr[3])
+        Modulus.users.changeNick(origin.source, origin.arr[2], origin.arr[3])
       else
-        user = @services.link.createUser(origin)
+        user = Modulus.link.createUser(origin)
         $log.debug "parser", "Added user #{user.nick}!#{user.username}@#{user.hostname} (#{user.svid} / #{user.timestamp}) after receiving NICK."
 
         # Add the user to whatever this is.
-        @services.users.addUser(user)
+        Modulus.users.addUser(user)
       end
 
       self.work(origin)
     end
 
     def handleKill(origin)
-      if @services.clients.isMyClient? origin.target
-        @services.clients.connect origin.target
+      if Modulus.clients.isMyClient? origin.target
+        Modulus.clients.connect origin.target
       else
-        @services.users.delete origin.target
+        Modulus.users.delete origin.target
       end
 
       self.work(origin)
@@ -114,17 +113,17 @@ module Modulus
     end
     
     def handlePrivmsg(origin)
-      @services.runCmds(origin)
+      Modulus.runCmds(origin)
       self.handleOther origin
     end
 
     def handleNotice(origin)
-      @services.runCmds(origin)
+      Modulus.runCmds(origin)
       self.handleOther origin
     end
 
     def handleQuit(origin)
-      @services.users.delete origin.target
+      Modulus.users.delete origin.target
       self.work(origin)
     end
 

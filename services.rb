@@ -70,5 +70,4 @@ config = Modulus::Config.new("#{$options[:configFile]}")
 # We'll make this a global variable so we can log from anywhere.
 
 #$log = Modulus::Log.new("#{config.getOption('Core', 'log_location')}", config.getOption('Core', 'log_rotation_period'))
-
-Modulus::Services.new(config)
+Modulus.start(config)

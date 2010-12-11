@@ -20,22 +20,20 @@ module Modulus
 
   class QuoteServ
 
-    def initialize(services)
-      @services = services
-
-      services.addService("QuoteServ", self,
+    def initialize
+      Modulus.addService("QuoteServ", self,
                          "Quotation Storage Service
                          
 QuoteServ allows services users to store memorable
 quotes in a database.")
 
-      services.events.register(:database_connected, self, "dbConnected")
-      services.events.register(:done_connecting, self, "done_connecting")
+      Modulus.events.register(:database_connected, self, "dbConnected")
+      Modulus.events.register(:done_connecting, self, "done_connecting")
 
-      services.clients.addClient(@services, "QuoteServ", "Quotation Storage Service")
+      Modulus.clients.addClient("QuoteServ", "Quotation Storage Service")
 
 
-      services.addCmd(self, "QuoteServ", "ADD", "cmd_qs_add",
+      Modulus.addCmd(self, "QuoteServ", "ADD", "cmd_qs_add",
                      "Add a quotation to the database.",
                      "Usage: ADD quotation
  
@@ -53,7 +51,7 @@ may restrict your rights to add private chats or chats in
 secret or private channels to the database. Ask network staff
 if you are unsure.")
 
-      services.addCmd(self, "QuoteServ", "GET", "cmd_qs_get",
+      Modulus.addCmd(self, "QuoteServ", "GET", "cmd_qs_get",
                      "Get a quotation from the database by quotation ID.",
                      "Usage: GET quotationID
  
@@ -61,13 +59,13 @@ A numerical identifier is assigned to each quotation added
 to the database. Using this unique identifier, it is possible
 to quickly fetch and display quotations.")
 
-      services.addCmd(self, "QuoteServ", "SEARCH", "cmd_qs_search",
+      Modulus.addCmd(self, "QuoteServ", "SEARCH", "cmd_qs_search",
                      "Search the database for quotations.",
                      "Usage: SEARCH query
  
 The search query is case-insensitive. Wildcards are not supported.")
 
-      services.addCmd(self, "QuoteServ", "JOIN", "cmd_qs_join",
+      Modulus.addCmd(self, "QuoteServ", "JOIN", "cmd_qs_join",
                      "Bring QuoteServ to a channel.",
                      "Usage: JOIN channel
  
@@ -78,7 +76,7 @@ an operator, ask the channel owner or other operators.
 Once QuoteServ has joined a channel, it will persistently remain
 there.")
 
-      services.addCmd(self, "QuoteServ", "PART", "cmd_qs_part",
+      Modulus.addCmd(self, "QuoteServ", "PART", "cmd_qs_part",
                      "Cause QuoteServ to leave a channel.",
                      "Usage: PART channel
  
@@ -86,7 +84,7 @@ You must be a channel operator in the given channel for this to
 work. QuoteServ will immediately leave the channel and will not
 return unless brought back.")
 
-      services.addCmd(self, "QuoteServ", "UP", "cmd_qs_up",
+      Modulus.addCmd(self, "QuoteServ", "UP", "cmd_qs_up",
                      "Vote for a quotation, causing its rank to increase.",
                      "Usage: UP quotationId
  
@@ -95,7 +93,7 @@ rank. When a quotation is created, this rank begins at 0. Each
 time a user uses the UP command for that quotation ID, the
 quotation will have 1 added to its rank.")
 
-      services.addCmd(self, "QuoteServ", "DOWN", "cmd_qs_down",
+      Modulus.addCmd(self, "QuoteServ", "DOWN", "cmd_qs_down",
                      "Vote against a quotation, causing its rank to decrease.",
                      "Usage: DOWN quotationId
  
@@ -104,7 +102,7 @@ rank. When a quotation is created, this rank begins at 0. Each
 time a user uses the DOWN command for that quotation ID, the
 quotation will have 1 subtracted from rank.")
 
-      services.addCmd(self, "QuoteServ", "REMOVE", "cmd_qs_remove",
+      Modulus.addCmd(self, "QuoteServ", "REMOVE", "cmd_qs_remove",
                      "Remove a quotation from the database by quotation ID.",
                      "Usage: REMOVE quotationID
  
@@ -160,7 +158,7 @@ available to the entire network and likely the entire Internet.")
     end
     
     def join(chan)
-        @services.clients.clients["QuoteServ"].addChannel(chan)
+        Modulus.clients.clients["QuoteServ"].addChannel(chan)
     end
 
     def dbConnected

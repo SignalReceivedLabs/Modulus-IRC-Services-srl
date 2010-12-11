@@ -20,25 +20,23 @@ module Modulus
 
   class HostServ
 
-    def initialize(services)
-      @services = services
-
-      services.addService("HostServ", self,
+    def initialize
+      Modulus.addService("HostServ", self,
                          "Vanity Host Name Assignment Service
  
 HostServ allows users and staff to create vanity host
 names to hide or replace their normal host name.")
 
-      services.events.register(:database_connected, self, "dbConnected")
-      services.events.register(:connect, self, "on_connect")
-      services.events.register(:logged_in, self, "on_log_in")
+      Modulus.events.register(:database_connected, self, "dbConnected")
+      Modulus.events.register(:connect, self, "on_connect")
+      Modulus.events.register(:logged_in, self, "on_log_in")
 
 
-      services.clients.addClient(@services, "HostServ", "Vanity Host Name Assignment Service")
+      Modulus.clients.addClient("HostServ", "Vanity Host Name Assignment Service")
 
 
 
-      services.addCmd(self, "HostServ", "SET", "cmd_hs_set",
+      Modulus.addCmd(self, "HostServ", "SET", "cmd_hs_set",
                      "Set or request a vanity host name.",
                      "Usage: SET hostname
  
@@ -51,10 +49,10 @@ host name is approved, it will be automatically activated and you
 will be notified of the approval.
  
 Host names are often restricted so that they may not contain certain
-things, such as common TLDs (.com, .net, etc.) in order to reduce
+things, such as common TLDs (.com,Modulus.net, etc.) in order to reduce
 abuse. Staff may be able to override this limitation on request.")
 
-      services.addCmd(self, "HostServ", "REMOVE", "cmd_hs_remove",
+      Modulus.addCmd(self, "HostServ", "REMOVE", "cmd_hs_remove",
                      "Remove your vanity host name.",
                      "Usage: REMOVE
  
@@ -62,14 +60,14 @@ Your host name will instantly be deactivated and deleted. This
 action is permanent. If you would like your vanity host name
 undeleted, you must attempt to set it as a new one.")
 
-      services.addCmd(self, "HostServ", "ON", "cmd_hs_on",
+      Modulus.addCmd(self, "HostServ", "ON", "cmd_hs_on",
                      "Activate your vanity host name.",
                      "Usage: ON
  
 If your services account has a host name which has been approved, it
 will be activated and applied to your current connection.")
 
-      services.addCmd(self, "HostServ", "OFF", "cmd_hs_off",
+      Modulus.addCmd(self, "HostServ", "OFF", "cmd_hs_off",
                      "Deactivate your vanity host name.",
                      "Usage: OFF
  
@@ -79,7 +77,7 @@ command will clear all virtual or vanity hosts from your current
 connection, returning your shown host name to that set by the IRC
 server.")
 
-      services.addCmd(self, "HostServ", "APPROVE", "cmd_hs_approve",
+      Modulus.addCmd(self, "HostServ", "APPROVE", "cmd_hs_approve",
                      "Approve a pending host name request.",
                      "Usage: APPROVE username
  
@@ -89,7 +87,7 @@ The host name for the given services account user name will be set
 to approved and instantly activated for the user. The user will be
 able to activate or deactivate the host name using HostServ commands.")
 
-      services.addCmd(self, "HostServ", "REJECT", "cmd_hs_reject",
+      Modulus.addCmd(self, "HostServ", "REJECT", "cmd_hs_reject",
                      "Reject a pending host name request.",
                      "Usage: REJECT username
  
@@ -105,7 +103,7 @@ deleted. The user will be notified of the failure if they are on-line.")
 
     def on_log_in(user)
       user = user[0]
-      default = @services.config.getOption("HostServ", "default_vhost")
+      default = Modulus.config.getOption("HostServ", "default_vhost")
 
       return if default == nil
       return if default.length == 0
@@ -117,37 +115,37 @@ deleted. The user will be notified of the failure if they are on-line.")
     end
 
     def activate(nick, host)
-      user = @services.users.find(nick)
+      user = Modulus.users.find(nick)
       return if user == nil
 
       if user.vhost != host and user.hostname != host
-        @services.link.changeHostname(nick, "HostServ", host)
+       Modulus.link.changeHostname(nick, "HostServ", host)
       end
     end
 
     def deactivate(nick)
-      user = @services.users.find(nick)
+      user = Modulus.users.find(nick)
 
       return if user == nil
 
-      @services.link.removeHostname(nick, "HostServ")
+      Modulus.link.removeHostname(nick, "HostServ")
     end
 
     def cmd_hs_set(origin)
       $log.debug "HostServ", "Got: #{origin.raw}"
 
       if origin.argsArr.length != 1
-        @services.reply(origin, "Usage: SET hostname")
+        Modulus.reply(origin, "Usage: SET hostname")
         return
       end
 
-      user = @services.users.find(origin.source)
+      user = Modulus.users.find(origin.source)
       return if user == nil
 
       account = Account.find_by_username(user.svid)
 
       if account == nil
-        @services.reply(origin, "You must be logged in to a valid services account to use this command.")
+        Modulus.reply(origin, "You must be logged in to a valid services account to use this command.")
         return
       end
 
@@ -155,23 +153,23 @@ deleted. The user will be notified of the failure if they are on-line.")
 
       # TODO: Make this the widest range possible depending on what the server supports.
       unless hostname.match(/[a-zA-Z0-9.-]/)
-        @services.reply(origin, "That host name is not valid. Host names may only contain alphanumeric characters, '-' and '.'")
+        Modulus.reply(origin, "That host name is not valid. Host names may only contain alphanumeric characters, '-' and '.'")
         return
       end
 
       unless user.is_services_admin?
-        restricted = @services.config.getOption("HostServ", "restricted_hostnames").split(" ")
+        restricted = Modulus.config.getOption("HostServ", "restricted_hostnames").split(" ")
 
         restricted.each { |restr|
           restr.gsub!("*", ".*")
 
           if hostname.match(restr)
-            @services.reply(origin, "The host name you provided is not permitted on this network.")
+            Modulus.reply(origin, "The host name you provided is not permitted on this network.")
             return
           end
         }
 
-        approval = @services.config.getBool("HostServ", "oper_approval")
+        approval = Modulus.config.getBool("HostServ", "oper_approval")
 
       else
         approval = false
@@ -193,12 +191,12 @@ deleted. The user will be notified of the failure if they are on-line.")
       end
 
       if approval
-        @services.reply(origin, "Your host name has been submitted for approval. When approved by network staff, it will be automatically activated.")
+        Modulus.reply(origin, "Your host name has been submitted for approval. When approved by network staff, it will be automatically activated.")
         $log.info 'HostServ', "Action required: #{origin.source} has requested host name: #{hostname}"
       else
         self.activate(origin.source, hostname)
 
-        @services.reply(origin, "The host name you provided has been saved and activated.")
+        Modulus.reply(origin, "The host name you provided has been saved and activated.")
         $log.info 'HostServ', "#{origin.source} has requested and activated host name: #{hostname}"
       end
     end
@@ -206,15 +204,15 @@ deleted. The user will be notified of the failure if they are on-line.")
     def cmd_hs_approve(origin)
       $log.debug "HostServ", "Got: #{origin.raw}"
 
-      user = @services.users.find(origin.source)
+      user = Modulus.users.find(origin.source)
 
       if not user.is_services_admin?
-        @services.reply(origin, "You must be a services administrator to use this command.")
+        Modulus.reply(origin, "You must be a services administrator to use this command.")
         return
       end
 
       if origin.argsArr.length != 1
-        @services.reply(origin, "Usage: APPROVE username")
+        Modulus.reply(origin, "Usage: APPROVE username")
         return
       end
 
@@ -222,22 +220,22 @@ deleted. The user will be notified of the failure if they are on-line.")
 
       if account == nil
         # Maybe they're giving a nick? Check if there's one logged in.
-        user = @services.users.find(origin.argsArr[0])
+        user = Modulus.users.find(origin.argsArr[0])
 
         if user == nil
           # Apparently not.
-          @services.reply(origin, "No such user name or nickname exists.")
+          Modulus.reply(origin, "No such user name or nickname exists.")
           return
         elsif user.logged_in?
           account = Account.find_by_username(user.svid)
 
           if account == nil
-            @services.reply(origin, "No such user name exists and the user with that nickname is not logged in to a services account.")
+            Modulus.reply(origin, "No such user name exists and the user with that nickname is not logged in to a services account.")
             return
           end
 
         else
-          @services.reply(origin, "No such user name exists and the user with that nickname is not logged in to a services account.")
+          Modulus.reply(origin, "No such user name exists and the user with that nickname is not logged in to a services account.")
           return
         end
       end
@@ -246,44 +244,44 @@ deleted. The user will be notified of the failure if they are on-line.")
       host = Host.find_by_account_id(account.id)
 
       if host == nil
-        @services.reply(origin, "There is not a host name request pending for that user.")
+        Modulus.reply(origin, "There is not a host name request pending for that user.")
         return
       end
 
       if host.approved == true
-        @services.reply(origin, "There is not a host name request pending for that user.")
+        Modulus.reply(origin, "There is not a host name request pending for that user.")
         return
       end
 
       host.approved = true
 
-      user = @services.users.find(account.username)
+      user = Modulus.users.find(account.username)
 
       if user != nil
         if user.svid == account.username
           self.activate(user.nick, host.hostname)
           host.active = true
-          @services.link.sendNotice("HostServ", user.nick, "Your pending host name has been approved and automatically activated.")
+         Modulus.sendNotice("HostServ", user.nick, "Your pending host name has been approved and automatically activated.")
         end
       end
 
       host.save!
 
       $log.info 'HostServ', "The host name #{host.hostname} for #{account.username} has been activated by #{origin.source}."
-      @services.reply(origin, "The host name has been approved.")
+      Modulus.reply(origin, "The host name has been approved.")
     end
 
     def cmd_hs_deny(origin)
       $log.debug "HostServ", "Got: #{origin.raw}"
-      user = @services.users.find(origin.source)
+      user = Modulus.users.find(origin.source)
 
       if not user.is_services_admin?
-        @services.reply(origin, "You must be a services administrator to use this command.")
+        Modulus.reply(origin, "You must be a services administrator to use this command.")
         return
       end
 
       if origin.argsArr.length != 1
-        @services.reply(origin, "Usage: APPROVE username")
+        Modulus.reply(origin, "Usage: APPROVE username")
         return
       end
 
@@ -291,22 +289,22 @@ deleted. The user will be notified of the failure if they are on-line.")
 
       if account == nil
         # Maybe they're giving a nick? Check if there's one logged in.
-        user = @services.users.find(origin.argsArr[0])
+        user = Modulus.users.find(origin.argsArr[0])
 
         if user == nil
           # Apparently not.
-          @services.reply(origin, "No such user name or nickname exists.")
+          Modulus.reply(origin, "No such user name or nickname exists.")
           return
         elsif user.logged_in?
           account = Account.find_by_username(user.svid)
 
           if account == nil
-            @services.reply(origin, "No such user name exists and the user with that nickname is not logged in to a services account.")
+            Modulus.reply(origin, "No such user name exists and the user with that nickname is not logged in to a services account.")
             return
           end
 
         else
-          @services.reply(origin, "No such user name exists and the user with that nickname is not logged in to a services account.")
+          Modulus.reply(origin, "No such user name exists and the user with that nickname is not logged in to a services account.")
           return
         end
       end
@@ -315,27 +313,27 @@ deleted. The user will be notified of the failure if they are on-line.")
       host = Host.find_by_account_id(account.id)
 
       if host == nil
-        @services.reply(origin, "There is not a host name request pending for that user.")
+        Modulus.reply(origin, "There is not a host name request pending for that user.")
         return
       end
 
       if host.approved == true
-        @services.reply(origin, "There is not a host name request pending for that user.")
+        Modulus.reply(origin, "There is not a host name request pending for that user.")
         return
       end
 
       host.destroy
 
-      user = @services.users.find(account.username)
+      user = Modulus.users.find(account.username)
 
       if user != nil
         if user.svid == account.username
-          @services.link.sendNotice("HostServ", user.nick, "Your host name request has been denied. To acquire a new host name, please request another, or contact network staff.")
+         Modulus.sendNotice("HostServ", user.nick, "Your host name request has been denied. To acquire a new host name, please request another, or contact network staff.")
         end
       end
 
       $log.info 'HostServ', "The host name for #{account.username} has been denied by #{origin.source}."
-      @services.reply(origin, "The host name has been denied and the user's host name record has been deleted.")
+      Modulus.reply(origin, "The host name has been denied and the user's host name record has been deleted.")
     end
 
     def cmd_hs_remove(origin)
@@ -346,31 +344,31 @@ deleted. The user will be notified of the failure if they are on-line.")
     def cmd_hs_on(origin)
       $log.debug "HostServ", "Got: #{origin.raw}"
 
-      user = @services.users.find(origin.source)
+      user = Modulus.users.find(origin.source)
 
       return if user == nil
 
       unless user.logged_in?
-        @services.reply(origin, "You must be logged in to a services account to use this command.")
+        Modulus.reply(origin, "You must be logged in to a services account to use this command.")
         return
       end
 
       account = Account.find_by_username(user.svid)
 
       if account == nil
-        @services.reply(origin, "You must be logged in to a services account to use this command.")
+        Modulus.reply(origin, "You must be logged in to a services account to use this command.")
         return
       end
 
       host = Host.find_by_account_id(account.id)
 
       if host == nil
-        @services.reply(origin, "There is no record of a vanity host name for your account. To request on, use the SET command. See HELP SET for more information.")
+        Modulus.reply(origin, "There is no record of a vanity host name for your account. To request on, use the SET command. See HELP SET for more information.")
         return
       end
 
       unless host.approved
-        @services.reply(origin, "There is a host name for your account, but it has not been approved. A member of your network's staff must activate the host name before you can use it.")
+        Modulus.reply(origin, "There is a host name for your account, but it has not been approved. A member of your network's staff must activate the host name before you can use it.")
         return
       end
 
@@ -379,7 +377,7 @@ deleted. The user will be notified of the failure if they are on-line.")
 
       self.activate(origin.source, host.hostname)
 
-      @services.reply(origin, "Host #{host.hostname} for #{origin.source} has been activated.")
+      Modulus.reply(origin, "Host #{host.hostname} for #{origin.source} has been activated.")
       $log.info 'HostServ', "Host #{host.hostname} for #{origin.source} has been activated by the ON command."
     end
 
@@ -387,7 +385,7 @@ deleted. The user will be notified of the failure if they are on-line.")
       $log.debug "HostServ", "Got: #{origin.raw}"
 
       self.deactivate(origin.source)
-      @services.reply(origin, "Your host mask has been deactivated.")
+      Modulus.reply(origin, "Your host mask has been deactivated.")
     end
 
     def dbConnected

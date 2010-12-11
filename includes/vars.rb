@@ -18,23 +18,52 @@
 
 module Modulus
 
-  class Command
+  def self.events
+    @@events
+  end
 
-    attr_reader :commandText, :shortDesc, :longDesc
+  def self.users
+    @@users
+  end
 
-    def initialize(sender, funcName, commandText, shortDesc, longDesc)
-      @owner = sender
-      @commandText = commandText
-      @shortDesc = shortDesc
-      @longDesc = longDesc
-      @funcName = funcName
-    end
+  def self.channels
+    @@channels
+  end
 
-    def run(origin)
-      $log.debug 'command', "Running command #{@commandText} for #{origin.source}"
-      eval("@owner.#{@funcName}(origin)")
-    end
+  def self.serviceModules
+    @@serviceModules
+  end
 
-  end #class Command
+  def self.cmdHooks
+    @@cmdHooks
+  end
+
+  def self.messageHooks
+    @@messageHooks
+  end
+
+  def self.hooks
+    @@hooks
+  end
+
+  def self.scheduler
+    @@scheduler
+  end
+
+  def self.hostname
+    @@hostname
+  end
+
+  def self.name
+    @@name
+  end
+
+  def self.config
+    @@config
+  end
+
+  def self.link
+    @@link
+  end
 
 end #module Modulus

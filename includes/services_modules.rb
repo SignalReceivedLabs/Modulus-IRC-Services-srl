@@ -22,9 +22,7 @@ module Modulus
 
     attr_reader :modules
 
-    def initialize(services)
-      @services = services
-
+    def initialize
       @modules = Hash.new
     end
 

@@ -22,13 +22,12 @@ module Modulus
 
     attr_reader :clients
 
-    def initialize(services)
-      @services = services
+    def initialize
       @clients = Hash.new
     end
 
-    def addClient(parent, nick, realName)
-      @clients[nick] = Pseudoclient.new(parent, nick, realName)
+    def addClient(nick, realName)
+      @clients[nick] = Pseudoclient.new(nick, realName)
     end
 
     def getAll
