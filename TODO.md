@@ -11,6 +11,7 @@
 * Dynamic code (re)loading
 * Configuration rehashing
 * Account creation and deletion events
+* Make everything case-insensitive where it needs to be (almost every module)
 
 ### Protocol Support
 
