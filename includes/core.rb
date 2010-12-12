@@ -41,7 +41,7 @@ module Modulus
     @@hostname = config.getOption("Core", "services_hostname")
     @@name = config.getOption("Core", "services_name")
 
-    @@events.register(:database_connected, self, "prepAccountTable")
+    @@events.register(:database_connected, self, "prepDatabase")
     @@events.register(:privmsg, self, "doHelp")
     @@events.register(:notice, self, "doHelp")
 
@@ -188,7 +188,17 @@ module Modulus
     @@link.connect(@@clients.clients.values)
   end
 
-  def Modulus.prepAccountTable
+  def Modulus.prepDatabase
+    unless ReservedNick.table_exists?
+      ActiveRecord::Schema.define do
+        create_table :reserved_nicks do |t|
+          t.string :nick, :null => false
+          t.string :module, :null => false
+          t.datetime :dateAdded
+        end
+      end
+    end
+
     unless Account.table_exists?
       ActiveRecord::Schema.define do
         create_table :accounts do |t|
@@ -202,7 +212,7 @@ module Modulus
           t.boolean :suspended, :default => false
           t.text :notes
           t.boolean :noexpire, :default => false
-          t.string :verified, :default => false
+          t.boolean :verified, :default => false
         end
       end
     end

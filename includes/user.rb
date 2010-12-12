@@ -69,7 +69,7 @@ module Modulus
 
     def is_oper?
       @modes.each { |mode|
-        if @link.operModes.include? mode
+        if Modulus.link.operModes.include? mode
           return true
         end      
       }
@@ -79,7 +79,7 @@ module Modulus
     def is_services_admin?
       @modes.each { |mode|
 
-        mode = @link.userModes[mode]
+        mode = Modulus.link.userModes[mode]
         if mode == :services_admin or mode == :network_admin or mode == :co_admin or mode == :server_admin
           return true
         end      

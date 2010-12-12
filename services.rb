@@ -21,7 +21,9 @@
 NAME="Modulus IRC Services"
 VERSION="0.1-pre-alpha"
 
+require 'rubygems'
 require 'optparse'
+require 'active_record'
 require 'rufus/scheduler'
 
 Dir.chdir(File.dirname(__FILE__))

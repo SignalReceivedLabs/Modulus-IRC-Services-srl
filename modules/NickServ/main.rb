@@ -211,45 +211,56 @@ contact your network's staff.")
 
         if Nick.find_by_nick(origin.source)
           Modulus.reply(origin, "The nick #{origin.source} is already registered.")
-        else
-          emailAcc = Account.find_by_email(email)
-
-          if emailAcc != nil
-            if username != emailAcc.username
-              Modulus.reply(origin, "The e-mail address #{email} has already been used by a registered user. If this is you, try including your username as well.")
-              return 
-            end
-          end
-
-          acc = Account.find_by_username(username)
-
-          if acc == nil
-            $log.debug "NickServ", "There is no account for #{username} but a user is trying to register a nick with it. Creating account with given password."
-
-            acc = Account.create(
-              :username => username,
-              :email => email,
-              :password => password,
-              :dateRegistered => DateTime.now,
-              :verified => true)
-
-            Modulus.reply(origin, "I have created a new account for #{username} (#{email}). If you register additional nicks in the future, use this e-mail address and username and the same password to keep nicks attached to this account. Otherwise, managing your services use will becoming confusing for both you and the network staff.")
-          elsif acc.password != password
-            Modulus.reply(origin, "Incorrect password for the existing account with that e-mail address.")
-            $log.info "NickServ", "Login failed: #{origin.source} tried to register a new nick for account #{acc.username} but used the wrong password."
-            return
-          end
-
-          # Everyything looks good. Go ahead and make it.
-          Nick.create(
-            :account_id => acc.id,
-            :nick => origin.source,
-            :dateRegistered => DateTime.now)
-
-          self.logIn(username, origin.source)
-          Modulus.reply(origin, "You have registered #{origin.source} to #{username} (#{email}).")
-          $log.info "NickServ", "Nick #{origin.source} registered to #{username}."
+          return
         end
+
+        if ReservedNick.find_by_nick(origin.source)
+          Modulus.reply(origin, "The nick #{origin.source} is reserved by services.")
+          return
+        end
+
+        emailAcc = Account.find_by_email(email)
+
+        if emailAcc != nil
+          if username != emailAcc.username
+            Modulus.reply(origin, "The e-mail address #{email} has already been used by a registered user. If this is you, try including your username as well.")
+            return 
+          end
+        end
+
+        acc = Account.find_by_username(username)
+
+        if acc == nil
+          $log.debug "NickServ", "There is no account for #{username} but a user is trying to register a nick with it. Creating account with given password."
+
+          acc = Account.create(
+            :username => username,
+            :email => email,
+            :password => password,
+            :dateRegistered => DateTime.now,
+            :verified => true)
+
+          Modulus.reply(origin, "I have created a new account for #{username} (#{email}). If you register additional nicks in the future, use this e-mail address and username and the same password to keep nicks attached to this account. Otherwise, managing your services use will becoming confusing for both you and the network staff.")
+        elsif acc.password != password
+          Modulus.reply(origin, "Incorrect password for the existing account with that e-mail address.")
+          $log.info "NickServ", "Login failed: #{origin.source} tried to register a new nick for account #{acc.username} but used the wrong password."
+          return
+        end
+
+        # Everyything looks good. Go ahead and make it.
+        Nick.create(
+          :account_id => acc.id,
+          :nick => origin.source,
+          :dateRegistered => DateTime.now)
+
+        ReservedNick.create(
+          :nick => origin.source,
+          :dateAdded => DateTime.now,
+          :module => "NickServ")
+
+        self.logIn(username, origin.source)
+        Modulus.reply(origin, "You have registered #{origin.source} to #{username} (#{email}).")
+        $log.info "NickServ", "Nick #{origin.source} registered to #{username}."
       end
     end
 

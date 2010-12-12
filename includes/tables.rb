@@ -18,6 +18,9 @@
 
 module Modulus
 
+  class ReservedNick < ActiveRecord::Base
+  end
+
   class Account < ActiveRecord::Base
     def authenticate(username, password)
       #TODO: Encrypt password! And also do this less stupidly.

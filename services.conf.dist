@@ -276,6 +276,11 @@ send_delay = 60
 
 [BotServ]
 
+# Maximum number of BotServ bots which a services account owner own at one
+# time.
+# Default: 1
+max_per_account = 1
+
 # Maximum number of bots which may be assigned to a single channel.
 # Default: 1
 max_per_channel = 1

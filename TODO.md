@@ -10,6 +10,7 @@
 * Command and message hooks should use Events
 * Dynamic code (re)loading
 * Configuration rehashing
+* Account creation and deletion events
 
 ### Protocol Support
 

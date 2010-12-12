@@ -17,8 +17,6 @@
 #
 
 module Modulus
-  require 'rubygems'
-  require 'active_record'
 
   def Modulus.startDB
     $log.info 'database', 'Starting database connection for the first time this session.'
