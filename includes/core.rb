@@ -30,6 +30,7 @@ module Modulus
     @@clients = Modulus::Clients.new
     @@serviceModules = Modulus::ServiceModules.new
     @@users = Modulus::Users.new
+    @@channels = Modulus::Channels.new
 
     @@hooks = Hash.new
     @@cmdHooks = Hash.new

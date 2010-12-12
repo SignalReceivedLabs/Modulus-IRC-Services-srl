@@ -27,12 +27,50 @@ module Modulus
 
       @channelPrefixes = [ "#" ]
 
-      @userModePrefixes = {
+      @channelModePrefixes = {
         "~" => :owner,
         "&" => :protected,
         "@" => :operator,
         "%" => :halfop,
         "+" => :voice
+      }
+
+      @channelModes = {
+        "A" => false,
+        "c" => false,
+        "f" => true,
+        "G" => false,
+        "i" => false,
+        "j" => true,
+        "K" => false,
+        "k" => true,
+        "l" => true,
+        "L" => true,
+        "M" => false,
+        "m" => false,
+        "N" => false,
+        "n" => false,
+        "O" => false,
+        "p" => false,
+        "Q" => false,
+        "r" => false,
+        "R" => false,
+        "S" => false,
+        "s" => false,
+        "t" => false,
+        "T" => false,
+        "u" => false,
+        "V" => false,
+        "z" => false,
+        "Z" => false
+      }
+
+      @channelUserModes = {
+        "q" => :owner,
+        "a" => :protected,
+        "o" => :op,
+        "h" => :halfop,
+        "v" => :voice
       }
 
       @userModes = {
