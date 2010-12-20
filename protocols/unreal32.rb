@@ -144,6 +144,7 @@ module Modulus
         "AL" => :chghost,
         "CHGHOST" => :chghost,
 
+        "|" => :mode,
 
         "#" => :whois,
         "WHOIS" => :whois,
