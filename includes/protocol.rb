@@ -22,6 +22,10 @@ module Modulus
 
     attr_reader :channelModes, :channelModePrefixes, :channelPrefixes, :userModes, :operModes, :channelUserModes
 
+    def send_raw(str)
+      @sendq << str
+    end
+
     def startRecvThread
       @readThread = Thread.new {
 
@@ -34,7 +38,11 @@ module Modulus
           while line = @socket.gets
             #TODO: Parse this, hand it off to something else.
             #puts "<-- #{line}"
-            @parser.parse line
+            begin
+              @parser.parse line
+            rescue => e
+              $log.error 'protocol', "There was an error parsing an incoming message [#{line}]: #{e}"
+            end 
           end
 
           $log.info "protocol", "Connection to the server has been lost."

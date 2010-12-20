@@ -75,6 +75,12 @@ module Modulus
 
     def changeNick(ind, newNick, newTimestamp)
       user = self.find(ind)
+
+      if user == nil
+        $log.error "user", "While performing a nick change, user #{ind} could not be found."
+        return
+      end
+
       user.nick = newNick
       user.timestamp = newTimestamp
     end

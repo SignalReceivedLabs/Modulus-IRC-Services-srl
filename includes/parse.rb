@@ -50,8 +50,9 @@ module Modulus
           line[0] = ""
           msg = ""
           if line.include? ":"
-            splt = line.split(":")
-            msg = splt[1..splt.length-1].join(" ")
+            #splt = line.split(":")
+            #msg = splt[1..splt.length-1].join(" ")
+            msg = line[line.index(":")+1..line.length-1]
           else
             msg = line
           end
