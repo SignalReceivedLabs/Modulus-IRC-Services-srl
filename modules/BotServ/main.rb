@@ -263,11 +263,6 @@ if they still exist.")
         return
       end
 
-      unless user.logged_in?
-        Modulus.reply(origin, "You must be logged in to a services account in order to use this command.")
-        return
-      end
-
       unless user.is_services_admin?
         unless Modulus.channels.is_channel_op? origin.source, origin.argsArr[1]
           Modulus.reply(origin, "In order to bring bots to that channel, you must be a channel operator.")
